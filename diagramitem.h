@@ -69,7 +69,7 @@ class DiagramItem :public QGraphicsPolygonItem
 {
 public:
     enum { Type = UserType + 15 };
-    enum DiagramType { Step, Conditional, StartEnd, Io };
+    enum DiagramType { MainChara, Monster, CatGirl, Tree };
 
     DiagramItem(DiagramType diagramType, QMenu *contextMenu, QGraphicsItem *parent = 0);
 
@@ -90,6 +90,8 @@ private:
     QPolygonF myPolygon;
     QMenu *myContextMenu;
     QList<Arrow *> arrows;
+//    std::string path;
+    char* path;
 };
 //! [0]
 

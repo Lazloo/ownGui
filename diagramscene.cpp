@@ -53,7 +53,7 @@ DiagramScene::DiagramScene(QMenu *itemMenu, QObject *parent) : QGraphicsScene(pa
 {
     myItemMenu = itemMenu;
     myMode = MoveItem;
-    myItemType = DiagramItem::Step;
+    myItemType = DiagramItem::MainChara;
     line = 0;
     textItem = 0;
     myItemColor = Qt::white;

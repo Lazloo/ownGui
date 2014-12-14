@@ -56,34 +56,29 @@ DiagramItem::DiagramItem(DiagramType diagramType, QMenu *contextMenu,
     myDiagramType = diagramType;
     myContextMenu = contextMenu;
 
-    QPainterPath path;
+//    QPainterPath path;
     switch (myDiagramType) {
-        case StartEnd:
-            path.moveTo(200, 50);
-            path.arcTo(150, 0, 50, 50, 0, 90);
-            path.arcTo(50, 0, 50, 50, 90, 90);
-            path.arcTo(50, 50, 50, 50, 180, 90);
-            path.arcTo(150, 50, 50, 50, 270, 90);
-            path.lineTo(200, 25);
-            myPolygon = path.toFillPolygon();
+        case MainChara:
+            path = ":/images/MainChara.png";
             break;
-        case Conditional:
-            myPolygon << QPointF(-100, 0) << QPointF(0, 100)
-                      << QPointF(100, 0) << QPointF(0, -100)
-                      << QPointF(-100, 0);
+        case Monster:
+            path = ":/images/CatGirt.png";
             break;
-        case Step:
-            myPolygon << QPointF(-100, -100) << QPointF(100, -100)
-                      << QPointF(100, 100) << QPointF(-100, 100)
-                      << QPointF(-100, -100);
+        case CatGirl:
+            path = ":/images/Monster.png";
+            break;
+        case Tree:
+            path = ":/images/Baum_1.png";
             break;
         default:
             myPolygon << QPointF(-120, -80) << QPointF(-70, 80)
-                      << QPointF(120, 80) << QPointF(70, -80)
-                      << QPointF(-120, -80);
+                              << QPointF(120, 80) << QPointF(70, -80)
+                              << QPointF(-120, -80);
+//            fputs ("error opening file\n",stderr);
+//            std::abort();
             break;
     }
-    setPolygon(myPolygon);
+//    setPolygon(myPolygon);
     setFlag(QGraphicsItem::ItemIsMovable, true);
     setFlag(QGraphicsItem::ItemIsSelectable, true);
     setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
@@ -132,7 +127,14 @@ QPixmap DiagramItem::image() const
     // The QPainter class performs low-level painting on widgets and other paint devices
     QPainter painter(&pixmap);
     // Load Image file by constructing
-    QPixmap image(":/images/Rechts_Laufen_Bogen.png");
+    switch (myDiagramType) {
+    case MainChara:
+        break;
+    default:
+        break;
+    }
+    QPixmap image(path);
+//    QPixmap image(":/images/Monster.png");
     // Draw icon centred horizontally on button.
     QRect target(0, 0, pixmap.width(), pixmap.height());
     QRect source(0, 0, 400, 500);

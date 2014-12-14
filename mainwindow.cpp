@@ -43,7 +43,7 @@
 #include "diagramscene.h"
 #include "diagramtextitem.h"
 #include "mainwindow.h"
-
+#include <iostream>
 #include <QtWidgets>
 
 const int InsertTextButton = 10;
@@ -74,7 +74,7 @@ MainWindow::MainWindow()
 
     // The toolbars must be created after the scene as they connect to its signals.
     // (all the things that can be chosen and stay clicked afterwards)
-    createToolbars();
+//    createToolbars();
 
     QHBoxLayout *layout = new QHBoxLayout;
     layout->addWidget(toolBox);
@@ -227,8 +227,8 @@ void MainWindow::sendToBack()
 // pointerTypeGroup. We must also uncheck the button in the in the buttonGroup.
 void MainWindow::itemInserted(DiagramItem *item)
 {
-    pointerTypeGroup->button(int(DiagramScene::MoveItem))->setChecked(true);
-    scene->setMode(DiagramScene::Mode(pointerTypeGroup->checkedId()));
+//    pointerTypeGroup->button(int(DiagramScene::MoveItem))->setChecked(true);
+    scene->setMode(DiagramScene::Mode(3));
     buttonGroup->button(int(item->diagramType()))->setChecked(false);
 }
 //! [7]
@@ -237,8 +237,8 @@ void MainWindow::itemInserted(DiagramItem *item)
 // We simply set the mode of the scene back to the mode it had before the text was inserted.
 void MainWindow::textInserted(QGraphicsTextItem *)
 {
-    buttonGroup->button(InsertTextButton)->setChecked(false);
-    scene->setMode(DiagramScene::Mode(pointerTypeGroup->checkedId()));
+//    buttonGroup->button(InsertTextButton)->setChecked(false);
+    scene->setMode(DiagramScene::Mode(3));
 }
 //! [8]
 
@@ -398,22 +398,23 @@ void MainWindow::createToolBox()
             this, SLOT(buttonGroupClicked(int)));
     QGridLayout *layout = new QGridLayout;
     // The createCellWidget() function sets up the buttons in the tabbed widget item and is examined later.
-    layout->addWidget(createCellWidget(tr("Conditional"), DiagramItem::Conditional), 0, 0);
-    layout->addWidget(createCellWidget(tr("Process"), DiagramItem::Step),0, 1);
-    layout->addWidget(createCellWidget(tr("Input/Output"), DiagramItem::Io), 1, 0);
+    layout->addWidget(createCellWidget(tr("MainChara"), DiagramItem::MainChara), 0, 0);
+    layout->addWidget(createCellWidget(tr("Monster"), DiagramItem::Monster),0, 1);
+    layout->addWidget(createCellWidget(tr("CatGirl"), DiagramItem::CatGirl), 1, 0);
+    layout->addWidget(createCellWidget(tr("Tree"), DiagramItem::Tree), 1, 1);
 
     // Not Commented -----------------------------------------------------
-    QToolButton *textButton = new QToolButton;
-    textButton->setCheckable(true);
-    buttonGroup->addButton(textButton, InsertTextButton);
-    textButton->setIcon(QIcon(QPixmap(":/images/Rechts_Laufen_Bogen.png")));
-    textButton->setIconSize(QSize(50, 50));
-    QGridLayout *textLayout = new QGridLayout;
-    textLayout->addWidget(textButton, 0, 0, Qt::AlignHCenter);
-    textLayout->addWidget(new QLabel(tr("Text")), 1, 0, Qt::AlignCenter);
-    QWidget *textWidget = new QWidget;
-    textWidget->setLayout(textLayout);
-    layout->addWidget(textWidget, 1, 1);
+//    QToolButton *textButton = new QToolButton;
+//    textButton->setCheckable(true);
+//    buttonGroup->addButton(textButton, InsertTextButton);
+//    textButton->setIcon(QIcon(QPixmap(":/images/Rechts_Laufen_Bogen.png")));
+//    textButton->setIconSize(QSize(50, 50));
+//    QGridLayout *textLayout = new QGridLayout;
+//    textLayout->addWidget(textButton, 0, 0, Qt::AlignHCenter);
+//    textLayout->addWidget(new QLabel(tr("Text")), 1, 0, Qt::AlignCenter);
+//    QWidget *textWidget = new QWidget;
+//    textWidget->setLayout(textLayout);
+//    layout->addWidget(textWidget, 1, 1);
 
     layout->setRowStretch(3, 10);
     layout->setColumnStretch(2, 10);
