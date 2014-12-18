@@ -74,6 +74,8 @@ private slots:
     void backgroundButtonGroupClicked(QAbstractButton *button);
     void buttonGroupClicked(int id);
     void deleteItem();
+    void saveFileAs();
+    void setMapSize();
     void pointerGroupClicked(int id);
     void bringToFront();
     void sendToBack();
@@ -109,6 +111,8 @@ private:
     QGraphicsView *view;
 
     QAction *exitAction;
+    QAction *saveFileAction;
+    QAction *setMapSizeAction;
     QAction *addAction;
     QAction *deleteAction;
 

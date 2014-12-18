@@ -74,12 +74,13 @@ MainWindow::MainWindow()
 
     // The toolbars must be created after the scene as they connect to its signals.
     // (all the things that can be chosen and stay clicked afterwards)
-//    createToolbars();
+    createToolbars();
 
     QHBoxLayout *layout = new QHBoxLayout;
     layout->addWidget(toolBox);
     view = new QGraphicsView(scene);
-    layout->addWiwdget(view);
+    view->setMaximumSize(QSize(1028, 770));
+    layout->addWidget(view);
 
     QWidget *widget = new QWidget;
     widget->setLayout(layout);
@@ -166,6 +167,18 @@ void MainWindow::deleteItem()
      }
 }
 //! [3]
+void MainWindow::saveFileAs()
+{
+    foreach (QGraphicsItem *item, scene->selectedItems()) {
+        std::cout<<"x: "<<item->x()<<std::endl;
+        std::cout<<"y: "<<item->y()<<std::endl;
+    }
+}
+
+void MainWindow::setMapSize()
+{
+    view->setSceneRect(QRectF(0, 0, 1024, 768));
+}
 
 //! [4]
 // The pointerTypeGroup decides whether the scene is in ItemMove or InsertLine mode. This button group is exclusive,
@@ -501,8 +514,18 @@ void MainWindow::createActions()
 
     exitAction = new QAction(tr("E&xit"), this);
     exitAction->setShortcuts(QKeySequence::Quit);
-    exitAction->setStatusTip(tr("Quit Scenediagram example"));
+    exitAction->setStatusTip(tr("Quit Scenediagram"));
     connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
+
+    saveFileAction = new QAction(tr("Save as"), this);
+    saveFileAction->setShortcut(tr("Ctrl+S"));
+    saveFileAction->setStatusTip(tr("Save Level"));
+    connect(saveFileAction, SIGNAL(triggered()), this, SLOT(saveFileAs()));
+
+    setMapSizeAction = new QAction(tr("Set Map Size"), this);
+    setMapSizeAction->setShortcut(tr("Ctrl+M"));
+    setMapSizeAction->setStatusTip(tr("Set the map size to a user defined value"));
+    connect(setMapSizeAction, SIGNAL(triggered()), this, SLOT(setMapSize()));
 
     boldAction = new QAction(tr("Bold"), this);
     boldAction->setCheckable(true);
@@ -531,6 +554,8 @@ void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(exitAction);
+    fileMenu->addAction(saveFileAction);
+    fileMenu->addAction(setMapSizeAction);
 
     itemMenu = menuBar()->addMenu(tr("&Item"));
     itemMenu->addAction(deleteAction);
@@ -553,66 +578,66 @@ void MainWindow::createToolbars()
     editToolBar->addAction(toFrontAction);
     editToolBar->addAction(sendBackAction);
 
-    fontCombo = new QFontComboBox();
-    connect(fontCombo, SIGNAL(currentFontChanged(QFont)),
-            this, SLOT(currentFontChanged(QFont)));
+//    fontCombo = new QFontComboBox();
+//    connect(fontCombo, SIGNAL(currentFontChanged(QFont)),
+//            this, SLOT(currentFontChanged(QFont)));
 
-    fontSizeCombo = new QComboBox;
-    fontSizeCombo->setEditable(true);
-    for (int i = 8; i < 30; i = i + 2)
-        fontSizeCombo->addItem(QString().setNum(i));
-    QIntValidator *validator = new QIntValidator(2, 64, this);
-    fontSizeCombo->setValidator(validator);
-    connect(fontSizeCombo, SIGNAL(currentIndexChanged(QString)),
-            this, SLOT(fontSizeChanged(QString)));
+//    fontSizeCombo = new QComboBox;
+//    fontSizeCombo->setEditable(true);
+//    for (int i = 8; i < 30; i = i + 2)
+//        fontSizeCombo->addItem(QString().setNum(i));
+//    QIntValidator *validator = new QIntValidator(2, 64, this);
+//    fontSizeCombo->setValidator(validator);
+//    connect(fontSizeCombo, SIGNAL(currentIndexChanged(QString)),
+//            this, SLOT(fontSizeChanged(QString)));
 
-    fontColorToolButton = new QToolButton;
-    fontColorToolButton->setPopupMode(QToolButton::MenuButtonPopup);
-    fontColorToolButton->setMenu(createColorMenu(SLOT(textColorChanged()), Qt::black));
-    textAction = fontColorToolButton->menu()->defaultAction();
-    fontColorToolButton->setIcon(createColorToolButtonIcon(":/images/textpointer.png", Qt::black));
-    fontColorToolButton->setAutoFillBackground(true);
-    connect(fontColorToolButton, SIGNAL(clicked()),
-            this, SLOT(textButtonTriggered()));
+//    fontColorToolButton = new QToolButton;
+//    fontColorToolButton->setPopupMode(QToolButton::MenuButtonPopup);
+//    fontColorToolButton->setMenu(createColorMenu(SLOT(textColorChanged()), Qt::black));
+//    textAction = fontColorToolButton->menu()->defaultAction();
+//    fontColorToolButton->setIcon(createColorToolButtonIcon(":/images/textpointer.png", Qt::black));
+//    fontColorToolButton->setAutoFillBackground(true);
+//    connect(fontColorToolButton, SIGNAL(clicked()),
+//            this, SLOT(textButtonTriggered()));
 
 //! [26]
-    // This button lets the user select a color for the diagram items.
-    fillColorToolButton = new QToolButton;
-    fillColorToolButton->setPopupMode(QToolButton::MenuButtonPopup);
-    // We set the menu of the tool button with setMenu(). We need the fillAction QAction object to always be pointing
-    // to the selected action of the menu.
-    //  The menu is created with the createColorMenu() function and, as we shall see later, contains one menu item for
-    // each color that the items can have.
-    fillColorToolButton->setMenu(createColorMenu(SLOT(itemColorChanged()), Qt::white));
-    fillAction = fillColorToolButton->menu()->defaultAction();
-    fillColorToolButton->setIcon(createColorToolButtonIcon(
-                                     ":/images/floodfill.png", Qt::white));
-    // When the user presses the button, which trigger the clicked() signal, we can set the color of the selected item
-    // to the color of fillAction. It is with createColorToolButtonIcon() we create the icon for the button.
-    connect(fillColorToolButton, SIGNAL(clicked()),
-            this, SLOT(fillButtonTriggered()));
+//    // This button lets the user select a color for the diagram items.
+//    fillColorToolButton = new QToolButton;
+//    fillColorToolButton->setPopupMode(QToolButton::MenuButtonPopup);
+//    // We set the menu of the tool button with setMenu(). We need the fillAction QAction object to always be pointing
+//    // to the selected action of the menu.
+//    //  The menu is created with the createColorMenu() function and, as we shall see later, contains one menu item for
+//    // each color that the items can have.
+//    fillColorToolButton->setMenu(createColorMenu(SLOT(itemColorChanged()), Qt::white));
+//    fillAction = fillColorToolButton->menu()->defaultAction();
+//    fillColorToolButton->setIcon(createColorToolButtonIcon(
+//                                     ":/images/floodfill.png", Qt::white));
+//    // When the user presses the button, which trigger the clicked() signal, we can set the color of the selected item
+//    // to the color of fillAction. It is with createColorToolButtonIcon() we create the icon for the button.
+//    connect(fillColorToolButton, SIGNAL(clicked()),
+//            this, SLOT(fillButtonTriggered()));
 
 
-    lineColorToolButton = new QToolButton;
-    lineColorToolButton->setPopupMode(QToolButton::MenuButtonPopup);
-    lineColorToolButton->setMenu(createColorMenu(SLOT(lineColorChanged()), Qt::black));
-    lineAction = lineColorToolButton->menu()->defaultAction();
-    lineColorToolButton->setIcon(createColorToolButtonIcon(
-                                     ":/images/linecolor.png", Qt::black));
-    connect(lineColorToolButton, SIGNAL(clicked()),
-            this, SLOT(lineButtonTriggered()));
+//    lineColorToolButton = new QToolButton;
+//    lineColorToolButton->setPopupMode(QToolButton::MenuButtonPopup);
+//    lineColorToolButton->setMenu(createColorMenu(SLOT(lineColorChanged()), Qt::black));
+//    lineAction = lineColorToolButton->menu()->defaultAction();
+//    lineColorToolButton->setIcon(createColorToolButtonIcon(
+//                                     ":/images/linecolor.png", Qt::black));
+//    connect(lineColorToolButton, SIGNAL(clicked()),
+//            this, SLOT(lineButtonTriggered()));
 
-    textToolBar = addToolBar(tr("Font"));
-    textToolBar->addWidget(fontCombo);
-    textToolBar->addWidget(fontSizeCombo);
-    textToolBar->addAction(boldAction);
-    textToolBar->addAction(italicAction);
-    textToolBar->addAction(underlineAction);
+//    textToolBar = addToolBar(tr("Font"));
+//    textToolBar->addWidget(fontCombo);
+//    textToolBar->addWidget(fontSizeCombo);
+//    textToolBar->addAction(boldAction);
+//    textToolBar->addAction(italicAction);
+//    textToolBar->addAction(underlineAction);
 
-    colorToolBar = addToolBar(tr("Color"));
-    colorToolBar->addWidget(fontColorToolButton);
-    colorToolBar->addWidget(fillColorToolButton);
-    colorToolBar->addWidget(lineColorToolButton);
+//    colorToolBar = addToolBar(tr("Color"));
+//    colorToolBar->addWidget(fontColorToolButton);
+//    colorToolBar->addWidget(fillColorToolButton);
+//    colorToolBar->addWidget(lineColorToolButton);
 
     QToolButton *pointerButton = new QToolButton;
     pointerButton->setCheckable(true);
@@ -622,11 +647,11 @@ void MainWindow::createToolbars()
     linePointerButton->setCheckable(true);
     linePointerButton->setIcon(QIcon(":/images/linepointer.png"));
 
-    pointerTypeGroup = new QButtonGroup(this);
-    pointerTypeGroup->addButton(pointerButton, int(DiagramScene::MoveItem));
-    pointerTypeGroup->addButton(linePointerButton, int(DiagramScene::InsertLine));
-    connect(pointerTypeGroup, SIGNAL(buttonClicked(int)),
-            this, SLOT(pointerGroupClicked(int)));
+//    pointerTypeGroup = new QButtonGroup(this);
+//    pointerTypeGroup->addButton(pointerButton, int(DiagramScene::MoveItem));
+//    pointerTypeGroup->addButton(linePointerButton, int(DiagramScene::InsertLine));
+//    connect(pointerTypeGroup, SIGNAL(buttonClicked(int)),
+//            this, SLOT(pointerGroupClicked(int)));
 
     sceneScaleCombo = new QComboBox;
     QStringList scales;
