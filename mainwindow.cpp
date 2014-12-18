@@ -79,7 +79,7 @@ MainWindow::MainWindow()
     QHBoxLayout *layout = new QHBoxLayout;
     layout->addWidget(toolBox);
     view = new QGraphicsView(scene);
-    layout->addWidget(view);
+    layout->addWiwdget(view);
 
     QWidget *widget = new QWidget;
     widget->setLayout(layout);
