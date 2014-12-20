@@ -153,16 +153,20 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
         case InsertItem:
             // Define QGraphicsPixmapItem
             itemImage = new QGraphicsPixmapItem(item.image());
-            // Add Item to the current scene
-            addItem(itemImage);
+//            itemImage->
             // Move Item to the current mouse position and center it afterwards
             itemImage->setPos(mouseEvent->scenePos());
             itemImage->setPos(itemImage->x()-(itemImage->sceneBoundingRect()).height()/2
                               ,itemImage->y()-(itemImage->sceneBoundingRect()).width()/2);
+
             itemImage->setVisible(true);
             itemImage->setFlag(QGraphicsItem::ItemIsSelectable, true);
             itemImage->setFlag(QGraphicsItem::ItemIsMovable, true);
             itemImage->setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
+//            bool tooFarRight = (itemImage->y()+itemImage->sceneBoundingRect()).width())>;
+            // Add Item to the current scene
+            addItem(itemImage);
+
             // Emiting does only make sure to return to the old state before clicking
             emit itemInserted(&item);
             break;

@@ -289,6 +289,23 @@ void MainWindow::itemInserted(DiagramItem *item)
 //    pointerTypeGroup->button(int(DiagramScene::MoveItem))->setChecked(true);
     scene->setMode(DiagramScene::Mode(3));
     buttonGroup->button(int(item->diagramType()))->setChecked(false);
+
+    // Create List with all items in the scene. The newest on is at the beginnign of the list
+    QList<QGraphicsItem *> list = scene->items();
+    bool tooFarRight = (list[0]->x())<0;
+    bool tooFarLeft = (list[0]->x()+list[0]->sceneBoundingRect().width())>SceneWidth;
+    bool tooFarUp = (list[0]->y())<0;
+    bool tooFarDown = (list[0]->y()+list[0]->sceneBoundingRect().height())>SceneHeight;
+//    std::cout<<"right: "<<tooFarRight<<"\tleft: "<<tooFarLeft<<std::endl;
+//    std::cout<<"Up: "<<tooFarUp<<"\tDown: "<<tooFarDown<<std::endl;
+
+    // If the item is outside of the boundary -> delete it
+    if(tooFarRight||tooFarLeft||tooFarUp||tooFarDown){
+//        QList<QGraphicsItem *> list = scene->items();
+//        std::cout<<"Size: "<<(list.size()) <<std::endl;
+        delete (list[0]);
+    };
+
 }
 //! [7]
 
