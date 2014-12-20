@@ -93,6 +93,7 @@ private slots:
     void handleFontChange();
     void itemSelected(QGraphicsItem *item);
     void about();
+    void setBounds();
 
 private:
     void createToolBox();
@@ -148,6 +149,15 @@ private:
     QAction *textAction;
     QAction *fillAction;
     QAction *lineAction;
+
+    QPen *penBoundaries;
+    QGraphicsLineItem *verticalLineLeft;
+    QGraphicsLineItem *verticalLineRight;
+    QGraphicsLineItem *horizontalLineTop;
+    QGraphicsLineItem *horizontalLineBottom;
+
+    double SceneWidth;
+    double SceneHeight;
 };
 //! [0]
 

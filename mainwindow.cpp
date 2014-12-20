@@ -45,6 +45,8 @@
 #include "mainwindow.h"
 #include <iostream>
 #include <QtWidgets>
+#include <QPen>
+#include <QLineF>
 
 const int InsertTextButton = 10;
 
@@ -59,8 +61,25 @@ MainWindow::MainWindow()
     //
     createMenus();
 
+    SceneWidth = 1024;
+    SceneHeight = 768;
     scene = new DiagramScene(itemMenu, this);
-    scene->setSceneRect(QRectF(0, 0, 5000, 5000));
+    scene->setSceneRect(QRectF(0, 0, SceneWidth, SceneHeight));
+
+    // Draw Boundaries
+    penBoundaries = new QPen(Qt::black);
+    penBoundaries->setStyle(Qt::SolidLine);
+//    verticalLineLeft = new QLine(0,0,0,SceneHeight);
+//    verticalLineRight = new QLine(SceneWidth,0,SceneWidth,SceneHeight);
+//    horizontalLineTop = new QLine(0,0,SceneWidth,0);
+//    horizontalLineBottom = new QLine(0,SceneHeight,SceneWidth,SceneHeight);
+    verticalLineLeft = scene->addLine(QLine(0,0,0,SceneHeight),*penBoundaries);
+    verticalLineRight = scene->addLine(QLine(SceneWidth,0,SceneWidth,SceneHeight),*penBoundaries);
+    horizontalLineTop = scene->addLine(QLine(0,0,SceneWidth,0),*penBoundaries);
+    horizontalLineBottom = scene->addLine(QLine(0,SceneHeight,SceneWidth,SceneHeight),*penBoundaries);
+
+
+
 
     // We connect to the itemInserted() and textInserted() slots of the diagram scenes as we want to uncheck the buttons in the
     // tool box when an item is inserted. When an item is selected in the scene we receive the itemSelected() signal. We use
@@ -90,6 +109,16 @@ MainWindow::MainWindow()
     setUnifiedTitleAndToolBarOnMac(true);
 }
 //! [0]
+
+void MainWindow::setBounds(){
+//    delete this->grid
+
+    verticalLineLeft->setLine(0,0,0,SceneHeight);
+//    verticalLineLeft = new QLine(0,0,0,SceneHeight);
+    verticalLineRight->setLine(SceneWidth,0,SceneWidth,SceneHeight);
+    horizontalLineTop->setLine(0,0,SceneWidth,0);
+    horizontalLineBottom->setLine(0,SceneHeight,SceneWidth,SceneHeight);
+}
 
 // In this function we set the QBrush that is used to draw the background of the diagramscene.
 // The background can be a grid of squares of blue, gray, or white tiles, or no grid at all.
@@ -162,6 +191,7 @@ void MainWindow::deleteItem()
     foreach (QGraphicsItem *item, scene->selectedItems()) {
          if (item->type() == DiagramItem::Type)
              qgraphicsitem_cast<DiagramItem *>(item)->removeArrows();
+         std::cout<<"New Item x: "<<item->x()<<"\ty: "<<item->y()<<std::endl;
          scene->removeItem(item);
          delete item;
      }
@@ -177,7 +207,23 @@ void MainWindow::saveFileAs()
 
 void MainWindow::setMapSize()
 {
-    view->setSceneRect(QRectF(0, 0, 1024, 768));
+    bool ok;
+    double sceneWidth = QInputDialog::getDouble(this, tr("QInputDialog::getDouble()"),
+                                       tr("Amount:"), SceneWidth, 0, 10000, 2, &ok);
+    if (ok)
+        SceneWidth=sceneWidth;
+
+    double sceneHeight = QInputDialog::getDouble(this, tr("QInputDialog::getDouble()"),
+                                       tr("Amount:"), SceneHeight, 0, 10000, 2, &ok);
+    if (ok)
+        SceneHeight=sceneHeight;
+
+    std::cout<<"Width: "<<SceneWidth<<"\tHeight: "<<SceneHeight<<std::endl;
+
+    view->setSceneRect(QRectF(0, 0, SceneWidth, SceneHeight));
+    scene->setSceneRect(QRectF(0, 0, SceneWidth, SceneHeight));
+    setBounds();
+    std::cout<<"Line x1: "<<verticalLineLeft->x()<<"\ty1: "<<verticalLineLeft->y()<<std::endl;
 }
 
 //! [4]
