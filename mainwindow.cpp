@@ -90,7 +90,8 @@ MainWindow::MainWindow()
             this, SLOT(textInserted(QGraphicsTextItem*)));
     connect(scene, SIGNAL(itemSelected(QGraphicsItem*)),
             this, SLOT(itemSelected(QGraphicsItem*)));
-
+    connect(scene, SIGNAL(checkItemPosition()),
+            this, SLOT(checkItemPosition()));
     // The toolbars must be created after the scene as they connect to its signals.
     // (all the things that can be chosen and stay clicked afterwards)
     createToolbars();
@@ -280,6 +281,32 @@ void MainWindow::sendToBack()
 }
 //! [6]
 
+void MainWindow::checkItemPosition(){
+
+    std::cout<<"ItemMoved"<<std::endl;
+    bool tooFarRight = true;
+    bool tooFarLeft = true;
+    bool tooFarUp = true;
+    bool tooFarDown = true;
+    QList<QGraphicsItem *> list = scene->items();
+
+    QGraphicsItem *item;
+    for(int iItem=0;iItem<list.size()-4;iItem++) {
+         item = list[iItem];
+         if (item->type() == DiagramItem::Type)
+             qgraphicsitem_cast<DiagramItem *>(item)->removeArrows();
+         tooFarRight = (item->x())<0;
+         tooFarLeft = (item->x()+item->sceneBoundingRect().width())>SceneWidth;
+         tooFarUp = (item->y())<0;
+         tooFarDown = (item->y()+item->sceneBoundingRect().height())>SceneHeight;
+         if(tooFarRight||tooFarLeft||tooFarUp||tooFarDown){
+             scene->removeItem(item);
+             delete item;
+         }
+     }
+    std::cout<<"Right"<<tooFarRight<<"\tLeft"<<tooFarLeft<<"\tUp"<<tooFarUp<<"\tDown"<<tooFarDown<<std::endl;
+}
+
 //! [7]
 // This slot is called from the DiagramScene when an item has been added to the scene. We set the mode of the scene back
 // to the mode before the item was inserted, which is ItemMove or InsertText depending on which button is checked in the
@@ -289,23 +316,6 @@ void MainWindow::itemInserted(DiagramItem *item)
 //    pointerTypeGroup->button(int(DiagramScene::MoveItem))->setChecked(true);
     scene->setMode(DiagramScene::Mode(3));
     buttonGroup->button(int(item->diagramType()))->setChecked(false);
-
-    // Create List with all items in the scene. The newest on is at the beginnign of the list
-    QList<QGraphicsItem *> list = scene->items();
-    bool tooFarRight = (list[0]->x())<0;
-    bool tooFarLeft = (list[0]->x()+list[0]->sceneBoundingRect().width())>SceneWidth;
-    bool tooFarUp = (list[0]->y())<0;
-    bool tooFarDown = (list[0]->y()+list[0]->sceneBoundingRect().height())>SceneHeight;
-//    std::cout<<"right: "<<tooFarRight<<"\tleft: "<<tooFarLeft<<std::endl;
-//    std::cout<<"Up: "<<tooFarUp<<"\tDown: "<<tooFarDown<<std::endl;
-
-    // If the item is outside of the boundary -> delete it
-    if(tooFarRight||tooFarLeft||tooFarUp||tooFarDown){
-//        QList<QGraphicsItem *> list = scene->items();
-//        std::cout<<"Size: "<<(list.size()) <<std::endl;
-        delete (list[0]);
-    };
-
 }
 //! [7]
 

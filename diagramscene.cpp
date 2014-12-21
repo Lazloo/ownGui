@@ -194,11 +194,15 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             textItem->setPos(mouseEvent->scenePos());
             emit textInserted(textItem);
 //! [8] //! [9]
+        case MoveItem:
+
     default:
         ;
     }
     // We are in MoveItem mode if we get to the default switch; we can then call the QGraphicsScene implementation, which handles movement of items with the mouse. We make this call even if we are in another mode making it possible to add an item and then keep the mouse button pressed down and start moving the item. In the case of text items, this is not possible as they do not propagate mouse events when they are editable.
     QGraphicsScene::mousePressEvent(mouseEvent);
+    emit checkItemPosition();
+//    if (myMode==MoveItem){emit checkItemPosition();}
 }
 //! [9]
 

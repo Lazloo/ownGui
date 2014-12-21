@@ -89,6 +89,7 @@ signals:
     void itemInserted(DiagramItem *item);
     void textInserted(QGraphicsTextItem *item);
     void itemSelected(QGraphicsItem *item);
+    void checkItemPosition();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
