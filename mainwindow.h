@@ -159,6 +159,10 @@ private:
 
     double SceneWidth;
     double SceneHeight;
+
+    std::vector<int> ModelTypes;
+    std::vector<std::vector<double>> ModelPositions;
+
 };
 //! [0]
 

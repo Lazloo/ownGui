@@ -122,7 +122,7 @@ void DiagramItem::addArrow(Arrow *arrow)
 QPixmap DiagramItem::image() const
 {
     // Add off-screen image representation that can be used as a paint device
-    QPixmap pixmap(100, 125);
+    QPixmap pixmap(84, 111);
     pixmap.fill(Qt::transparent);
     // The QPainter class performs low-level painting on widgets and other paint devices
     QPainter painter(&pixmap);

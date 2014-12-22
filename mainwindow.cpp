@@ -51,7 +51,7 @@
 const int InsertTextButton = 10;
 
 //! [0]
-MainWindow::MainWindow()
+MainWindow::MainWindow():ModelPositions(0,std::vector<double>(0,0)),ModelTypes(0,0)
 {
     // In the constructor we call methods to create the widgets and layouts of the example before we create the diagram scene.
     // All the things right below the toolbar
@@ -61,18 +61,14 @@ MainWindow::MainWindow()
     //
     createMenus();
 
-    SceneWidth = 1024;
-    SceneHeight = 768;
+    SceneWidth = 800;
+    SceneHeight = 600;
     scene = new DiagramScene(itemMenu, this);
     scene->setSceneRect(QRectF(0, 0, SceneWidth, SceneHeight));
 
     // Draw Boundaries
     penBoundaries = new QPen(Qt::black);
     penBoundaries->setStyle(Qt::SolidLine);
-//    verticalLineLeft = new QLine(0,0,0,SceneHeight);
-//    verticalLineRight = new QLine(SceneWidth,0,SceneWidth,SceneHeight);
-//    horizontalLineTop = new QLine(0,0,SceneWidth,0);
-//    horizontalLineBottom = new QLine(0,SceneHeight,SceneWidth,SceneHeight);
     verticalLineLeft = scene->addLine(QLine(0,0,0,SceneHeight),*penBoundaries);
     verticalLineRight = scene->addLine(QLine(SceneWidth,0,SceneWidth,SceneHeight),*penBoundaries);
     horizontalLineTop = scene->addLine(QLine(0,0,SceneWidth,0),*penBoundaries);
@@ -99,7 +95,7 @@ MainWindow::MainWindow()
     QHBoxLayout *layout = new QHBoxLayout;
     layout->addWidget(toolBox);
     view = new QGraphicsView(scene);
-    view->setMaximumSize(QSize(1028, 770));
+    view->setMaximumSize(QSize(SceneWidth+10, SceneHeight+10));
     layout->addWidget(view);
 
     QWidget *widget = new QWidget;
@@ -179,30 +175,59 @@ void MainWindow::buttonGroupClicked(int id)
 // arrows in the scene that aren't connected to items in both ends.
 void MainWindow::deleteItem()
 {
-    foreach (QGraphicsItem *item, scene->selectedItems()) {
-        if (item->type() == Arrow::Type) {
-            scene->removeItem(item);
-            Arrow *arrow = qgraphicsitem_cast<Arrow *>(item);
-            arrow->startItem()->removeArrow(arrow);
-            arrow->endItem()->removeArrow(arrow);
-            delete item;
-        }
-    }
+//    foreach (QGraphicsItem *item, scene->selectedItems()) {
+//        if (item->type() == Arrow::Type) {
+//            scene->removeItem(item);
+//            Arrow *arrow = qgraphicsitem_cast<Arrow *>(item);
+//            arrow->startItem()->removeArrow(arrow);
+//            arrow->endItem()->removeArrow(arrow);
+//            delete item;
+//        }
+//    }
+
+    // Initialization
+    QList<QGraphicsItem *> itemList = scene->items();
+    std::vector<std::size_t> indices(scene->selectedItems().size(),0);
+    std::size_t posVec = 0;
 
     foreach (QGraphicsItem *item, scene->selectedItems()) {
+
+        // Save indices of deleted item in the list. Used further below
+        for(std::size_t iItem=0;std::size_t(iItem<itemList.size()-4);iItem++){
+            if(itemList[iItem]==item){
+                indices[posVec] =iItem;
+                posVec++;
+            }
+        }
+
          if (item->type() == DiagramItem::Type)
              qgraphicsitem_cast<DiagramItem *>(item)->removeArrows();
-         std::cout<<"New Item x: "<<item->x()<<"\ty: "<<item->y()<<std::endl;
          scene->removeItem(item);
          delete item;
      }
+
+
+    // Bring indices in a defined order
+    std::sort (indices.begin(),indices.end());
+
+    // Go in the inverted direction for deleting otherwise you end up messing up the indices
+    std::size_t maxSize = ModelTypes.size();
+    for(std::size_t iItem=0;iItem<indices.size();iItem++){
+        std::size_t indexUsed = maxSize-1-indices[iItem];
+        ModelTypes.erase(ModelTypes.begin()+indexUsed);
+    }
 }
 //! [3]
+
+// This function creates a text-file with all necesaary information in order to recreate the map
 void MainWindow::saveFileAs()
 {
-    foreach (QGraphicsItem *item, scene->selectedItems()) {
-        std::cout<<"x: "<<item->x()<<std::endl;
-        std::cout<<"y: "<<item->y()<<std::endl;
+    QList<QGraphicsItem *> itemList = scene->items();
+    // -4 since the last four item are the boundary lines
+    for(int iItem=0;iItem<itemList.size()-4;iItem++){
+        std::cout<<"x: "<<itemList[iItem]->x();
+        std::cout<<"\ty: "<<itemList[iItem]->y()<<std::endl;
+        std::cout<<"\tModeltype: "<<ModelTypes[itemList.size()-4-1-iItem]<<std::endl;
     }
 }
 
@@ -219,12 +244,9 @@ void MainWindow::setMapSize()
     if (ok)
         SceneHeight=sceneHeight;
 
-    std::cout<<"Width: "<<SceneWidth<<"\tHeight: "<<SceneHeight<<std::endl;
-
-    view->setSceneRect(QRectF(0, 0, SceneWidth, SceneHeight));
+    view->setSceneRect(QRectF(0, 0, SceneWidth+10, SceneHeight+10));
     scene->setSceneRect(QRectF(0, 0, SceneWidth, SceneHeight));
     setBounds();
-    std::cout<<"Line x1: "<<verticalLineLeft->x()<<"\ty1: "<<verticalLineLeft->y()<<std::endl;
 }
 
 //! [4]
@@ -283,7 +305,7 @@ void MainWindow::sendToBack()
 
 void MainWindow::checkItemPosition(){
 
-    std::cout<<"ItemMoved"<<std::endl;
+//    std::cout<<"ItemMoved"<<std::endl;
     bool tooFarRight = true;
     bool tooFarLeft = true;
     bool tooFarUp = true;
@@ -304,7 +326,8 @@ void MainWindow::checkItemPosition(){
              delete item;
          }
      }
-    std::cout<<"Right"<<tooFarRight<<"\tLeft"<<tooFarLeft<<"\tUp"<<tooFarUp<<"\tDown"<<tooFarDown<<std::endl;
+
+//    std::cout<<"Right"<<tooFarRight<<"\tLeft"<<tooFarLeft<<"\tUp"<<tooFarUp<<"\tDown"<<tooFarDown<<std::endl;
 }
 
 //! [7]
@@ -316,6 +339,19 @@ void MainWindow::itemInserted(DiagramItem *item)
 //    pointerTypeGroup->button(int(DiagramScene::MoveItem))->setChecked(true);
     scene->setMode(DiagramScene::Mode(3));
     buttonGroup->button(int(item->diagramType()))->setChecked(false);
+
+    // Update lists
+    ModelTypes.push_back(item->diagramType());
+
+
+//    QGraphicsItem *itemScene = (scene->items()).first();
+//    ModelPositions.push_back(std::vector<double>(2,0));
+//    std::cout<<"Item Position: "<<itemScene->x()<<" - "<<itemScene->y();
+//    ModelPositions[ModelPositions.size()-1,0] = itemScene->x();
+//    ModelPositions[ModelPositions.size()-1,1] = itemScene->y();
+//    itemScene
+
+//    std::cout<<"Model Position x: "<<ModelPositions[ModelTypes.size()-1][0]<<" y: "<<ModelPositions[ModelTypes.size()-1][1]<<std::endl;
 }
 //! [7]
 
