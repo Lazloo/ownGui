@@ -207,6 +207,11 @@ void MainWindow::deleteItem()
     for(std::size_t iItem=0;iItem<indices.size();iItem++){
         std::size_t indexUsed = maxSize-1-indices[iItem];
         ModelTypes.erase(ModelTypes.begin()+indexUsed);
+        MovementType.erase(MovementType.begin()+indexUsed);
+        MovementDetails.erase(MovementDetails.begin()+indexUsed);
+        Gravity.erase(Gravity.begin()+indexUsed);
+        RelationToMainChara.erase(RelationToMainChara.begin()+indexUsed);
+        EventIndex.erase(EventIndex.begin()+indexUsed);
     }
 }
 //! [3]
@@ -229,6 +234,8 @@ void MainWindow::saveFileAs()
     std::size_t nItem = static_cast<std::size_t> (itemList.size()-4);
     for(int iItem=0;iItem<nItem;iItem++){
         myfile<<ModelTypes[iItem]<<"\t"<<itemList[nItem-1-iItem]->x()<<"\t"<<itemList[nItem-1-iItem]->y()
+             <<"\t"<<MovementType[iItem]<<"\t"<<MovementDetails[iItem]<<"\t"<<Gravity[iItem]
+             <<"\t"<<RelationToMainChara[iItem]<<"\t"<<EventIndex[iItem]
              <<"\t"<<std::endl;
     }
     myfile.close();
@@ -264,6 +271,11 @@ void MainWindow::loadFile(){
 
     ModelTypes.resize(nModels,0);
     ModelPositions.resize(nModels,std::vector<double>(2,0));
+    MovementType.resize(nModels,0);
+    MovementDetails.resize(nModels,0);
+    Gravity.resize(nModels,0);
+    RelationToMainChara.resize(nModels,0);
+    EventIndex.resize(nModels,0);
 
     std::size_t lineIndex=0;
 
@@ -276,11 +288,14 @@ void MainWindow::loadFile(){
     while (std::getline(infile, line))
     {
         std::istringstream iss(line);
-        if (!(iss >> ModelTypes[lineIndex] >> ModelPositions[lineIndex][0]>>ModelPositions[lineIndex][1])) {
+        if (!(iss >> ModelTypes[lineIndex] >> ModelPositions[lineIndex][0]>>ModelPositions[lineIndex][1])
+                     >>MovementType[lineIndex]>>MovementDetails[lineIndex]>>Gravity[lineIndex]
+                     >>RelationToMainChara[lineIndex]>>EventIndex[lineIndex]
+                ) {
             std::cout<<"break"<<std::endl;
             break;
         } // error
-        std::cout<<"ModelType: "<<ModelTypes[lineIndex]<<"\tx: "<<ModelPositions[lineIndex][0]<<"\ty: "<<ModelPositions[lineIndex][1]<<std::endl;
+//        std::cout<<"ModelType: "<<ModelTypes[lineIndex]<<"\tx: "<<ModelPositions[lineIndex][0]<<"\ty: "<<ModelPositions[lineIndex][1]<<std::endl;
         lineIndex++;
     }
 
@@ -396,9 +411,44 @@ void MainWindow::checkItemPosition(){
 // pointerTypeGroup. We must also uncheck the button in the in the buttonGroup.
 void MainWindow::itemInserted(DiagramItem *item)
 {
-//    pointerTypeGroup->button(int(DiagramScene::MoveItem))->setChecked(true);
     scene->setMode(DiagramScene::Mode(3));
     buttonGroup->button(int(item->diagramType()))->setChecked(false);
+
+    switch (item->diagramType()) {
+    // Archer
+    case DiagramItem::DiagramType(0):
+        MovementType.push_back(1);
+        MovementDetails.push_back(0);
+        Gravity.push_back(1);
+        RelationToMainChara.push_back(2);
+        EventIndex.push_back(0);
+        break;
+    // Cat Girl
+    case DiagramItem::DiagramType(1):
+        MovementType.push_back(1);
+        MovementDetails.push_back(0);
+        Gravity.push_back(1);
+        RelationToMainChara.push_back(2);
+        EventIndex.push_back(0);
+        break;
+    // Monster
+    case DiagramItem::DiagramType(2):
+        MovementType.push_back(1);
+        MovementDetails.push_back(0);
+        Gravity.push_back(1);
+        RelationToMainChara.push_back(1);
+        EventIndex.push_back(0);
+        break;
+    // Tree
+    case DiagramItem::DiagramType(3):
+        MovementType.push_back(0);
+        MovementDetails.push_back(0);
+        Gravity.push_back(0);
+        RelationToMainChara.push_back(0);
+        EventIndex.push_back(0);
+    default:
+        break;
+    }
 
     // Update lists
     ModelTypes.push_back(item->diagramType());

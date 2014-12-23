@@ -162,9 +162,31 @@ private:
     double SceneWidth;
     double SceneHeight;
 
+    // Container for all the properties of the models
+
     std::vector<int> ModelTypes;
     std::vector<std::vector<double>> ModelPositions;
-
+    // Movement type:
+    //		- 0 = no movement
+    //		- 1 = horizontal movement
+    //		- 2 = User controlled jumpNRun movement
+    std::vector<std::size_t> MovementType;
+    // additional information about the chosen movement
+    //		- case 1st col is 0: entry is ignored
+    //		- case 1st col is 1: entry represents the distance of the movement
+    //		- case 1st col is 2: entry is ignored
+    std::vector<std::size_t> MovementDetails;
+    // save if gravation effect the model or not
+    std::vector<std::size_t> Gravity;
+    // neutral or enemy or friend
+    //		- 0 ... neutral
+    //		- 1 ... enemy
+    //		- 2 ... friend
+    std::vector<std::size_t> RelationToMainChara;
+    // Index of event that happens if enter is pressed if main character
+    //			     and model are near to each other
+    //		- 0 ... nothing happens
+    std::vector<std::size_t> EventIndex;
 };
 //! [0]
 
