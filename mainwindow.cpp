@@ -37,7 +37,7 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
+#include <QFileDialog>
 #include "arrow.h"
 #include "diagramitem.h"
 #include "diagramscene.h"
@@ -47,6 +47,8 @@
 #include <QtWidgets>
 #include <QPen>
 #include <QLineF>
+#include <fstream>
+#include <sstream>
 
 const int InsertTextButton = 10;
 
@@ -175,16 +177,6 @@ void MainWindow::buttonGroupClicked(int id)
 // arrows in the scene that aren't connected to items in both ends.
 void MainWindow::deleteItem()
 {
-//    foreach (QGraphicsItem *item, scene->selectedItems()) {
-//        if (item->type() == Arrow::Type) {
-//            scene->removeItem(item);
-//            Arrow *arrow = qgraphicsitem_cast<Arrow *>(item);
-//            arrow->startItem()->removeArrow(arrow);
-//            arrow->endItem()->removeArrow(arrow);
-//            delete item;
-//        }
-//    }
-
     // Initialization
     QList<QGraphicsItem *> itemList = scene->items();
     std::vector<std::size_t> indices(scene->selectedItems().size(),0);
@@ -222,13 +214,81 @@ void MainWindow::deleteItem()
 // This function creates a text-file with all necesaary information in order to recreate the map
 void MainWindow::saveFileAs()
 {
+
+    QString fileName = QFileDialog::getSaveFileName(this,
+         tr("Open File"), "/home", tr("text files (*.txt)"));
+    std::ofstream myfile;
+
+    myfile.open (fileName.toStdString(), std::ios::out | std::ios::trunc);
+
+    // Save Size of view
+    myfile<<SceneWidth<<"\t"<<SceneHeight<<"\t"<<std::endl;
+
     QList<QGraphicsItem *> itemList = scene->items();
     // -4 since the last four item are the boundary lines
-    for(int iItem=0;iItem<itemList.size()-4;iItem++){
-        std::cout<<"x: "<<itemList[iItem]->x();
-        std::cout<<"\ty: "<<itemList[iItem]->y()<<std::endl;
-        std::cout<<"\tModeltype: "<<ModelTypes[itemList.size()-4-1-iItem]<<std::endl;
+    std::size_t nItem = static_cast<std::size_t> (itemList.size()-4);
+    for(int iItem=0;iItem<nItem;iItem++){
+        myfile<<ModelTypes[iItem]<<"\t"<<itemList[nItem-1-iItem]->x()<<"\t"<<itemList[nItem-1-iItem]->y()
+             <<"\t"<<std::endl;
     }
+    myfile.close();
+}
+
+
+void MainWindow::loadFile(){
+
+
+    QString fileName = QFileDialog::getOpenFileName(this,
+         tr("Open File"), "/home", tr("text files (*.txt)"));
+
+    if(fileName.length()==0){
+        return;
+    }
+
+    // Clear old Scene
+    QList<QGraphicsItem *> itemProto = scene->items();
+    for(std::size_t iItem=0;iItem<itemProto.size()-4;iItem++) {
+        delete itemProto[iItem];
+    }
+
+    std::string line;
+    std::size_t nModels = 0;
+
+    // Get number of objects which are saved in the file
+    std::ifstream infile(fileName.toStdString());
+    while ( std::getline(infile, line) )
+       ++nModels;
+    nModels=nModels-1;
+    std::cout<<"Lines: "<<nModels<<std::endl;
+    infile.close();
+
+    ModelTypes.resize(nModels,0);
+    ModelPositions.resize(nModels,std::vector<double>(2,0));
+
+    std::size_t lineIndex=0;
+
+    infile.open(fileName.toStdString());
+    // First the size of the scene
+    std::getline(infile, line);
+    std::istringstream iss1(line);
+    iss1>> SceneWidth >> SceneHeight;
+
+    while (std::getline(infile, line))
+    {
+        std::istringstream iss(line);
+        if (!(iss >> ModelTypes[lineIndex] >> ModelPositions[lineIndex][0]>>ModelPositions[lineIndex][1])) {
+            std::cout<<"break"<<std::endl;
+            break;
+        } // error
+        std::cout<<"ModelType: "<<ModelTypes[lineIndex]<<"\tx: "<<ModelPositions[lineIndex][0]<<"\ty: "<<ModelPositions[lineIndex][1]<<std::endl;
+        lineIndex++;
+    }
+
+    infile.close();
+
+    scene->addItemsFromList(ModelTypes,ModelPositions);
+    setBounds();
+
 }
 
 void MainWindow::setMapSize()
@@ -342,16 +402,6 @@ void MainWindow::itemInserted(DiagramItem *item)
 
     // Update lists
     ModelTypes.push_back(item->diagramType());
-
-
-//    QGraphicsItem *itemScene = (scene->items()).first();
-//    ModelPositions.push_back(std::vector<double>(2,0));
-//    std::cout<<"Item Position: "<<itemScene->x()<<" - "<<itemScene->y();
-//    ModelPositions[ModelPositions.size()-1,0] = itemScene->x();
-//    ModelPositions[ModelPositions.size()-1,1] = itemScene->y();
-//    itemScene
-
-//    std::cout<<"Model Position x: "<<ModelPositions[ModelTypes.size()-1][0]<<" y: "<<ModelPositions[ModelTypes.size()-1][1]<<std::endl;
 }
 //! [7]
 
@@ -631,6 +681,11 @@ void MainWindow::createActions()
     saveFileAction->setStatusTip(tr("Save Level"));
     connect(saveFileAction, SIGNAL(triggered()), this, SLOT(saveFileAs()));
 
+    loadFileAction = new QAction(tr("Load"), this);
+    loadFileAction->setShortcut(tr("Ctrl+O"));
+    loadFileAction->setStatusTip(tr("Load Level"));
+    connect(loadFileAction, SIGNAL(triggered()), this, SLOT(loadFile()));
+
     setMapSizeAction = new QAction(tr("Set Map Size"), this);
     setMapSizeAction->setShortcut(tr("Ctrl+M"));
     setMapSizeAction->setStatusTip(tr("Set the map size to a user defined value"));
@@ -664,6 +719,7 @@ void MainWindow::createMenus()
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(exitAction);
     fileMenu->addAction(saveFileAction);
+    fileMenu->addAction(loadFileAction);
     fileMenu->addAction(setMapSizeAction);
 
     itemMenu = menuBar()->addMenu(tr("&Item"));

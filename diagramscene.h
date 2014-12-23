@@ -78,6 +78,7 @@ public:
     void setTextColor(const QColor &color);
     void setItemColor(const QColor &color);
     void setFont(const QFont &font);
+    void addItemsFromList(const std::vector<int> &modelTypes,const std::vector<std::vector<double>> &modelPositions);
 
 public slots:
     void setMode(Mode mode);

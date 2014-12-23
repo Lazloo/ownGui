@@ -75,6 +75,7 @@ private slots:
     void buttonGroupClicked(int id);
     void deleteItem();
     void saveFileAs();
+    void loadFile();
     void setMapSize();
     void pointerGroupClicked(int id);
     void bringToFront();
@@ -114,6 +115,7 @@ private:
 
     QAction *exitAction;
     QAction *saveFileAction;
+    QAction *loadFileAction;
     QAction *setMapSizeAction;
     QAction *addAction;
     QAction *deleteAction;

@@ -206,6 +206,32 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 }
 //! [9]
 
+void DiagramScene::addItemsFromList(const std::vector<int> &modelTypes,const std::vector<std::vector<double>> &modelPositions){
+
+    DiagramItem *item;
+    QGraphicsPixmapItem *itemImage;
+    for(std::size_t iItem=0;iItem<modelTypes.size();iItem++){
+
+        // Using the constructor of DiagramItem in order to create the Qpixmap
+        item = &(DiagramItem(DiagramItem::DiagramType(modelTypes[iItem]), myItemMenu));
+
+        // Define QGraphicsPixmapItem
+        itemImage = new QGraphicsPixmapItem(item->image());
+
+        // Move Item to the current mouse position and center it afterwards
+        itemImage->setPos(QPointF(modelPositions[iItem][0],modelPositions[iItem][1]));
+        std::cout<<"Type: "<<DiagramItem::DiagramType(modelTypes[iItem])<<"\tx: "<<modelPositions[iItem][0]<<"\ty: "<<modelPositions[iItem][1]<<std::endl;
+
+        itemImage->setVisible(true);
+        itemImage->setFlag(QGraphicsItem::ItemIsSelectable, true);
+        itemImage->setFlag(QGraphicsItem::ItemIsMovable, true);
+        itemImage->setFlag(QGraphicsItem::ItemSendsGeometryChanges, true);
+
+        // Add Item to the current scene
+        addItem(itemImage);
+    }
+}
+
 //! [10]
 void DiagramScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
