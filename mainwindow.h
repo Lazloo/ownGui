@@ -81,6 +81,7 @@ private slots:
     void bringToFront();
     void sendToBack();
     void itemInserted(DiagramItem *item);
+    void itemsInserted(DiagramItem *item, std::size_t nModels);
     void checkItemPosition();
     void textInserted(QGraphicsTextItem *item);
     void currentFontChanged(const QFont &font);

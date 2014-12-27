@@ -1,0 +1,2 @@
+- Add Dialog for editing properties of the models
+- add tool for drawing horizntal and vertical lines of specific modelx such as trees

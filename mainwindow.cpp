@@ -84,6 +84,11 @@ MainWindow::MainWindow():ModelPositions(0,std::vector<double>(0,0)),ModelTypes(0
     // this to update the widgets that display font properties if the item selected is a DiagramTextItem.
     connect(scene, SIGNAL(itemInserted(DiagramItem*)),
             this, SLOT(itemInserted(DiagramItem*)));
+    connect(scene, SIGNAL(itemsInserted(DiagramItem*,std::size_t)),
+            this, SLOT(itemsInserted(DiagramItem*,std::size_t)));
+//    connect(scene, SIGNAL(itemsInserted(DiagramItem *item, std::size_t nModels)),
+//            this, SLOT(itemsInserted(DiagramItem *item, std::size_t nModels)));
+
     connect(scene, SIGNAL(textInserted(QGraphicsTextItem*)),
             this, SLOT(textInserted(QGraphicsTextItem*)));
     connect(scene, SIGNAL(itemSelected(QGraphicsItem*)),
@@ -295,7 +300,7 @@ void MainWindow::loadFile(){
             std::cout<<"break"<<std::endl;
             break;
         } // error
-//        std::cout<<"ModelType: "<<ModelTypes[lineIndex]<<"\tx: "<<ModelPositions[lineIndex][0]<<"\ty: "<<ModelPositions[lineIndex][1]<<std::endl;
+        std::cout<<"ModelType: "<<ModelTypes[lineIndex]<<"\tx: "<<ModelPositions[lineIndex][0]<<"\ty: "<<ModelPositions[lineIndex][1]<<std::endl;
         lineIndex++;
     }
 
@@ -331,6 +336,9 @@ void MainWindow::setMapSize()
 void MainWindow::pointerGroupClicked(int)
 {
     scene->setMode(DiagramScene::Mode(pointerTypeGroup->checkedId()));
+    if(DiagramScene::Mode(pointerTypeGroup->checkedId())==DiagramScene::InsertHorizontalLine){
+        scene->setEndOfLine(!(scene->getEndOfLine()));
+    };
 }
 //! [4]
 
@@ -426,7 +434,7 @@ void MainWindow::itemInserted(DiagramItem *item)
     // Cat Girl
     case DiagramItem::DiagramType(1):
         MovementType.push_back(1);
-        MovementDetails.push_back(0);
+        MovementDetails.push_back(2);
         Gravity.push_back(1);
         RelationToMainChara.push_back(2);
         EventIndex.push_back(0);
@@ -434,7 +442,7 @@ void MainWindow::itemInserted(DiagramItem *item)
     // Monster
     case DiagramItem::DiagramType(2):
         MovementType.push_back(1);
-        MovementDetails.push_back(0);
+        MovementDetails.push_back(2);
         Gravity.push_back(1);
         RelationToMainChara.push_back(1);
         EventIndex.push_back(0);
@@ -452,6 +460,52 @@ void MainWindow::itemInserted(DiagramItem *item)
 
     // Update lists
     ModelTypes.push_back(item->diagramType());
+}
+
+void MainWindow::itemsInserted(DiagramItem *item, std::size_t nModels){
+//    scene->setMode(DiagramScene::Mode(3));
+//    buttonGroup->button(int(item->diagramType()))->setChecked(false);
+
+    for(std::size_t iModel=0;iModel<nModels;iModel++){
+        switch (item->diagramType()) {
+        // Archer
+        case DiagramItem::DiagramType(0):
+            MovementType.push_back(1);
+            MovementDetails.push_back(0);
+            Gravity.push_back(1);
+            RelationToMainChara.push_back(2);
+            EventIndex.push_back(0);
+            break;
+        // Cat Girl
+        case DiagramItem::DiagramType(1):
+            MovementType.push_back(1);
+            MovementDetails.push_back(2);
+            Gravity.push_back(1);
+            RelationToMainChara.push_back(2);
+            EventIndex.push_back(0);
+            break;
+        // Monster
+        case DiagramItem::DiagramType(2):
+            MovementType.push_back(1);
+            MovementDetails.push_back(2);
+            Gravity.push_back(1);
+            RelationToMainChara.push_back(1);
+            EventIndex.push_back(0);
+            break;
+        // Tree
+        case DiagramItem::DiagramType(3):
+            MovementType.push_back(0);
+            MovementDetails.push_back(0);
+            Gravity.push_back(0);
+            RelationToMainChara.push_back(0);
+            EventIndex.push_back(0);
+        default:
+            break;
+        }
+
+        // Update lists
+        ModelTypes.push_back(item->diagramType());
+    }
 }
 //! [7]
 
@@ -858,15 +912,16 @@ void MainWindow::createToolbars()
     pointerButton->setCheckable(true);
     pointerButton->setChecked(true);
     pointerButton->setIcon(QIcon(":/images/pointer.png"));
+
     QToolButton *linePointerButton = new QToolButton;
     linePointerButton->setCheckable(true);
     linePointerButton->setIcon(QIcon(":/images/linepointer.png"));
 
-//    pointerTypeGroup = new QButtonGroup(this);
-//    pointerTypeGroup->addButton(pointerButton, int(DiagramScene::MoveItem));
-//    pointerTypeGroup->addButton(linePointerButton, int(DiagramScene::InsertLine));
-//    connect(pointerTypeGroup, SIGNAL(buttonClicked(int)),
-//            this, SLOT(pointerGroupClicked(int)));
+    pointerTypeGroup = new QButtonGroup(this);
+    pointerTypeGroup->addButton(pointerButton, int(DiagramScene::MoveItem));
+    pointerTypeGroup->addButton(linePointerButton, int(DiagramScene::InsertHorizontalLine));
+    connect(pointerTypeGroup, SIGNAL(buttonClicked(int)),
+            this, SLOT(pointerGroupClicked(int)));
 
     sceneScaleCombo = new QComboBox;
     QStringList scales;

@@ -67,7 +67,7 @@ class DiagramScene : public QGraphicsScene
     Q_OBJECT
 
 public:
-    enum Mode { InsertItem, InsertLine, InsertText, MoveItem };
+    enum Mode { InsertItem, InsertHorizontalLine, InsertText, MoveItem };
 
     explicit DiagramScene(QMenu *itemMenu, QObject *parent = 0);
     QFont font() const { return myFont; }
@@ -80,6 +80,13 @@ public:
     void setFont(const QFont &font);
     void addItemsFromList(const std::vector<int> &modelTypes,const std::vector<std::vector<double>> &modelPositions);
 
+// ---------------------- Get and Sets ------------------------
+    void setEndOfLine(bool endOfLine){
+        EndOfLine = endOfLine;
+    }
+    bool getEndOfLine(void){
+        return EndOfLine;
+    }
 public slots:
     void setMode(Mode mode);
     void setItemType(DiagramItem::DiagramType type);
@@ -91,6 +98,8 @@ signals:
     void textInserted(QGraphicsTextItem *item);
     void itemSelected(QGraphicsItem *item);
     void checkItemPosition();
+    void itemsInserted(DiagramItem *item, std::size_t nModels);
+    void testSignal(DiagramItem *item, std::size_t nModels);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent);
@@ -104,13 +113,17 @@ private:
     QMenu *myItemMenu;
     Mode myMode;
     bool leftButtonDown;
+    bool EndOfLine;
     QPointF startPoint;
+    QPointF endPoint;
+
     QGraphicsLineItem *line;
     QFont myFont;
     DiagramTextItem *textItem;
     QColor myTextColor;
     QColor myItemColor;
     QColor myLineColor;
+
 };
 
 #endif // DIAGRAMSCENE_H

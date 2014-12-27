@@ -158,7 +158,6 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             itemImage->setPos(mouseEvent->scenePos());
             itemImage->setPos(itemImage->x()-(itemImage->sceneBoundingRect()).height()/2
                               ,itemImage->y()-(itemImage->sceneBoundingRect()).width()/2);
-
             itemImage->setVisible(true);
             itemImage->setFlag(QGraphicsItem::ItemIsSelectable, true);
             itemImage->setFlag(QGraphicsItem::ItemIsMovable, true);
@@ -170,13 +169,11 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             // Emiting does only make sure to return to the old state before clicking
             emit itemInserted(&item);
             break;
-//! [6] //! [7]
-        // The user adds Arrows to the scene by stretching a line between the items the arrow should connect. The start of the line is fixed in the place the user clicked the mouse and the end follows the mouse pointer as long as the button is held down. When the user releases the mouse button an Arrow will be added to the scene if there is a DiagramItem under the start and end of the line. We will see how this is implemented later; here we simply add the line.
-        case InsertLine:
-            line = new QGraphicsLineItem(QLineF(mouseEvent->scenePos(),
-                                        mouseEvent->scenePos()));
-            line->setPen(QPen(myLineColor, 2));
-            addItem(line);
+        case InsertHorizontalLine:
+//            line = new QGraphicsLineItem(QLineF(mouseEvent->scenePos(),
+//                                        mouseEvent->scenePos()));
+//            line->setPen(QPen(myLineColor, 2));
+//            addItem(line);
             break;
 //! [7] //! [8]
         // The DiagramTextItem is editable when the Qt::TextEditorInteraction flag is set, else it is movable by the mouse. We always want the text to be drawn on top of the other items in the scene, so we set the value to a number higher than other items in the scene.
@@ -235,7 +232,7 @@ void DiagramScene::addItemsFromList(const std::vector<int> &modelTypes,const std
 //! [10]
 void DiagramScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-    if (myMode == InsertLine && line != 0) {
+    if (myMode == InsertHorizontalLine && line != 0) {
         QLineF newLine(line->line().p1(), mouseEvent->scenePos());
         line->setLine(newLine);
     } else if (myMode == MoveItem) {
@@ -248,34 +245,48 @@ void DiagramScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 // In the mouseReleaseEvent() function we need to check if an arrow should be added to the scene
 void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-    // First we need to get the items (if any) under the line's start and end points. The line itself is the first item at these points, so we remove it from the lists. As a precaution, we check if the lists are empty, but this should never happen.
-    if (line != 0 && myMode == InsertLine) {
-        QList<QGraphicsItem *> startItems = items(line->line().p1());
-        if (startItems.count() && startItems.first() == line)
-            startItems.removeFirst();
-        QList<QGraphicsItem *> endItems = items(line->line().p2());
-        if (endItems.count() && endItems.first() == line)
-            endItems.removeFirst();
-
-        removeItem(line);
-        delete line;
-//! [11] //! [12]
-        // Now we check if there are two different DiagramItems under the lines start and end points. If there are we can create an Arrow with the two items. The arrow is then added to each item and finally the scene. The arrow must be updated to adjust its start and end points to the items. We set the z-value of the arrow to -1000.0 because we always want it to be drawn under the items.
-        if (startItems.count() > 0 && endItems.count() > 0 &&
-            startItems.first()->type() == DiagramItem::Type &&
-            endItems.first()->type() == DiagramItem::Type &&
-            startItems.first() != endItems.first()) {
-            DiagramItem *startItem = qgraphicsitem_cast<DiagramItem *>(startItems.first());
-            DiagramItem *endItem = qgraphicsitem_cast<DiagramItem *>(endItems.first());
-            Arrow *arrow = new Arrow(startItem, endItem);
-            arrow->setColor(myLineColor);
-            startItem->addArrow(arrow);
-            endItem->addArrow(arrow);
-            arrow->setZValue(-1000.0);
-            addItem(arrow);
-            arrow->updatePosition();
-        }
+    if (myMode == InsertHorizontalLine&&(!EndOfLine)) {
+        startPoint = QPointF(mouseEvent->scenePos());
+        EndOfLine = !EndOfLine;
     }
+
+    else if (myMode == InsertHorizontalLine&&EndOfLine) {
+        endPoint = QPointF(mouseEvent->scenePos());
+        // Create Item whih contains a prototype of the item which shall be inserted
+        DiagramItem item = DiagramItem(myItemType, myItemMenu);
+        QGraphicsPixmapItem image(item.image());
+        double width = image.sceneBoundingRect().width();
+
+        std::size_t nModels = floor(abs(startPoint.x()-endPoint.x())/width);
+        std::cout<<"startPoint.x()-endPoint.x(): "<<startPoint.x()-endPoint.x()<<std::endl;
+        std::cout<<"abs startPoint.x()-endPoint.x(): "<<abs(startPoint.x()-endPoint.x())<<std::endl;
+        std::cout<<"item.sceneBoundingRect().width(): "<<(width)<<std::endl;
+
+        std::cout<<"nModels: "<<nModels<<std::endl;
+
+        std::vector<int> modelTypes(nModels,myItemType);
+        std::vector<std::vector<double>> modelPositions(nModels,std::vector<double>(2,0));
+        int signDistance = 1 - 2*static_cast<unsigned>((startPoint.x()-endPoint.x())>0);
+
+        for(std::size_t iModel=0;iModel<nModels;iModel++){
+            std::cout<<"signDistance: "<<double(signDistance)<<std::endl;
+            std::cout<<"modelTypes: "<<modelTypes[iModel]<<std::endl;
+            std::cout<<"startPoint.x(): "<<startPoint.x()<<std::endl;
+            std::cout<<"width: "<<width<<std::endl;
+            std::cout<<"signDistance*iModel*width: "<<double(signDistance)*double(iModel)*double(width)<<std::endl;
+            std::cout<<"iModel: "<<double(iModel)<<std::endl;
+            modelPositions[iModel][0] = startPoint.x() + double(signDistance)*double(iModel)*double(width);
+            modelPositions[iModel][1] = startPoint.y();
+            std::cout<<"pos: "<<modelPositions[iModel][0]<<"\t-"<<modelPositions[iModel][1]<<std::endl;
+        }
+
+        addItemsFromList(modelTypes,modelPositions);
+        EndOfLine = !EndOfLine;
+        emit itemsInserted(&item,nModels);
+    }
+
+//    std::cout<<"startPoint: "<<startPoint.x()<<"\t-"<<startPoint.y()<<std::endl;
+
 //! [12] //! [13]
     line = 0;
     QGraphicsScene::mouseReleaseEvent(mouseEvent);
