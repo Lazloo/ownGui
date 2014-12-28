@@ -1,2 +1,3 @@
 - Add Dialog for editing properties of the models
-- add tool for drawing horizntal and vertical lines of specific modelx such as trees
+- Check bug that after the first save all models change to trees
+- debug what happens if the model button are unchecked (right now nothing happens)

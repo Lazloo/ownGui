@@ -64,7 +64,7 @@ MainWindow::MainWindow():ModelPositions(0,std::vector<double>(0,0)),ModelTypes(0
     createMenus();
 
     SceneWidth = 800;
-    SceneHeight = 600;
+    SceneHeight = 3000;
     scene = new DiagramScene(itemMenu, this);
     scene->setSceneRect(QRectF(0, 0, SceneWidth, SceneHeight));
 
@@ -336,8 +336,9 @@ void MainWindow::setMapSize()
 void MainWindow::pointerGroupClicked(int)
 {
     scene->setMode(DiagramScene::Mode(pointerTypeGroup->checkedId()));
-    if(DiagramScene::Mode(pointerTypeGroup->checkedId())==DiagramScene::InsertHorizontalLine){
-        scene->setEndOfLine(!(scene->getEndOfLine()));
+    if(DiagramScene::Mode(pointerTypeGroup->checkedId())==DiagramScene::InsertHorizontalLine||
+       DiagramScene::Mode(pointerTypeGroup->checkedId())==DiagramScene::InsertVerticalLine){
+        scene->setEndOfLine(false);
     };
 }
 //! [4]
@@ -913,13 +914,18 @@ void MainWindow::createToolbars()
     pointerButton->setChecked(true);
     pointerButton->setIcon(QIcon(":/images/pointer.png"));
 
-    QToolButton *linePointerButton = new QToolButton;
-    linePointerButton->setCheckable(true);
-    linePointerButton->setIcon(QIcon(":/images/linepointer.png"));
+    QToolButton *linePointerHorizontalButton = new QToolButton;
+    linePointerHorizontalButton->setCheckable(true);
+    linePointerHorizontalButton->setIcon(QIcon(":/images/linePointerHorizontal.png"));
+
+    QToolButton *linePointerVerticalButton = new QToolButton;
+    linePointerVerticalButton->setCheckable(true);
+    linePointerVerticalButton->setIcon(QIcon(":/images/linePointerVertical.png"));
 
     pointerTypeGroup = new QButtonGroup(this);
     pointerTypeGroup->addButton(pointerButton, int(DiagramScene::MoveItem));
-    pointerTypeGroup->addButton(linePointerButton, int(DiagramScene::InsertHorizontalLine));
+    pointerTypeGroup->addButton(linePointerHorizontalButton, int(DiagramScene::InsertHorizontalLine));
+    pointerTypeGroup->addButton(linePointerVerticalButton, int(DiagramScene::InsertVerticalLine));
     connect(pointerTypeGroup, SIGNAL(buttonClicked(int)),
             this, SLOT(pointerGroupClicked(int)));
 
@@ -933,7 +939,8 @@ void MainWindow::createToolbars()
 
     pointerToolbar = addToolBar(tr("Pointer type"));
     pointerToolbar->addWidget(pointerButton);
-    pointerToolbar->addWidget(linePointerButton);
+    pointerToolbar->addWidget(linePointerHorizontalButton);
+    pointerToolbar->addWidget(linePointerVerticalButton);
     pointerToolbar->addWidget(sceneScaleCombo);
 //! [27]
 }

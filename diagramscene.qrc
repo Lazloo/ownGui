@@ -19,5 +19,7 @@
         <file>images/CatGirt.png</file>
         <file>images/Monster.png</file>
         <file>images/Baum_1.png</file>
+        <file>images/linePointerHorizontal.png</file>
+        <file>images/linePointerVertical.png</file>
     </qresource>
 </RCC>

@@ -59,6 +59,7 @@ DiagramScene::DiagramScene(QMenu *itemMenu, QObject *parent) : QGraphicsScene(pa
     myItemColor = Qt::white;
     myTextColor = Qt::black;
     myLineColor = Qt::black;
+    EndOfLine = false;
 }
 //! [0]
 
@@ -167,7 +168,7 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             addItem(itemImage);
 
             // Emiting does only make sure to return to the old state before clicking
-            emit itemInserted(&item);
+            emit itemsInserted(&item,1);
             break;
         case InsertHorizontalLine:
 //            line = new QGraphicsLineItem(QLineF(mouseEvent->scenePos(),
@@ -245,44 +246,68 @@ void DiagramScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 // In the mouseReleaseEvent() function we need to check if an arrow should be added to the scene
 void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-    if (myMode == InsertHorizontalLine&&(!EndOfLine)) {
+    std::cout<<"Mouse Event: "<<myMode<<"\tcheck: "<<InsertVerticalLine<<"\tEndOfLine: "<<EndOfLine<<std::endl;
+
+    // Get Position of start and end of the model line
+    if ((myMode == InsertHorizontalLine||myMode == InsertVerticalLine)&&(!EndOfLine)) {
+        std::cout<<"Start Point: "<<std::endl;
         startPoint = QPointF(mouseEvent->scenePos());
-        EndOfLine = !EndOfLine;
     }
 
-    else if (myMode == InsertHorizontalLine&&EndOfLine) {
+    if ((myMode == InsertHorizontalLine||myMode == InsertVerticalLine)&&(EndOfLine)) {
+        std::cout<<"End Point: "<<(myMode == InsertHorizontalLine||myMode == InsertVerticalLine)<<
+                " - "<<EndOfLine<<std::endl;
         endPoint = QPointF(mouseEvent->scenePos());
+
         // Create Item whih contains a prototype of the item which shall be inserted
         DiagramItem item = DiagramItem(myItemType, myItemMenu);
         QGraphicsPixmapItem image(item.image());
         double width = image.sceneBoundingRect().width();
+        double height = image.sceneBoundingRect().height();
 
-        std::size_t nModels = floor(abs(startPoint.x()-endPoint.x())/width);
-        std::cout<<"startPoint.x()-endPoint.x(): "<<startPoint.x()-endPoint.x()<<std::endl;
-        std::cout<<"abs startPoint.x()-endPoint.x(): "<<abs(startPoint.x()-endPoint.x())<<std::endl;
-        std::cout<<"item.sceneBoundingRect().width(): "<<(width)<<std::endl;
+        // Center Images with respect to the mouse pointer
+        startPoint.setX(startPoint.x()-width/2);
+        startPoint.setY(startPoint.y()-height/2);
+        endPoint.setX(endPoint.x()-width/2);
+        endPoint.setY(endPoint.y()-height/2);
 
-        std::cout<<"nModels: "<<nModels<<std::endl;
+        std::size_t nModels = 0;
+        switch (myMode) {
+        case InsertHorizontalLine:
+             nModels= ceil(abs(startPoint.x()-endPoint.x())/width);
+             std::cout<<"nModels1 : "<<nModels<<std::endl;
+            break;
+        case InsertVerticalLine:
+            nModels = ceil(abs(startPoint.y()-endPoint.y())/height);
+            std::cout<<"nModels2 : "<<nModels<<std::endl;
+            break;
+        default:
+            std::cout<<"nModels3 : "<<nModels<<std::endl;
+            break;
+        }
+
 
         std::vector<int> modelTypes(nModels,myItemType);
         std::vector<std::vector<double>> modelPositions(nModels,std::vector<double>(2,0));
-        int signDistance = 1 - 2*static_cast<unsigned>((startPoint.x()-endPoint.x())>0);
 
+        int signDistance = 1 - 2*static_cast<unsigned>((startPoint.x()-endPoint.x())>0);
         for(std::size_t iModel=0;iModel<nModels;iModel++){
-            std::cout<<"signDistance: "<<double(signDistance)<<std::endl;
-            std::cout<<"modelTypes: "<<modelTypes[iModel]<<std::endl;
-            std::cout<<"startPoint.x(): "<<startPoint.x()<<std::endl;
-            std::cout<<"width: "<<width<<std::endl;
-            std::cout<<"signDistance*iModel*width: "<<double(signDistance)*double(iModel)*double(width)<<std::endl;
-            std::cout<<"iModel: "<<double(iModel)<<std::endl;
-            modelPositions[iModel][0] = startPoint.x() + double(signDistance)*double(iModel)*double(width);
-            modelPositions[iModel][1] = startPoint.y();
-            std::cout<<"pos: "<<modelPositions[iModel][0]<<"\t-"<<modelPositions[iModel][1]<<std::endl;
+            if(myMode == InsertHorizontalLine){
+                modelPositions[iModel][0] = startPoint.x() + double(signDistance)*double(iModel)*double(width);
+                modelPositions[iModel][1] = startPoint.y();
+            }
+            else{
+                modelPositions[iModel][0] = startPoint.x();
+                modelPositions[iModel][1] = startPoint.y()+ double(signDistance)*double(iModel)*double(height);
+            }
         }
 
+        // Add the items to the scenes
         addItemsFromList(modelTypes,modelPositions);
-        EndOfLine = !EndOfLine;
         emit itemsInserted(&item,nModels);
+    }
+    if(myMode == InsertHorizontalLine||myMode == InsertVerticalLine){
+        EndOfLine = !EndOfLine;
     }
 
 //    std::cout<<"startPoint: "<<startPoint.x()<<"\t-"<<startPoint.y()<<std::endl;
