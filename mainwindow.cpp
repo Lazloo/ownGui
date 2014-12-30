@@ -37,6 +37,9 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#include <QPushButton>
+#include <QListWidget>
+#include <QStackedWidget>
 #include <QFileDialog>
 #include "arrow.h"
 #include "diagramitem.h"
@@ -49,7 +52,6 @@
 #include <QLineF>
 #include <fstream>
 #include <sstream>
-
 const int InsertTextButton = 10;
 
 //! [0]
@@ -84,8 +86,8 @@ MainWindow::MainWindow():ModelPositions(0,std::vector<double>(0,0)),ModelTypes(0
     // this to update the widgets that display font properties if the item selected is a DiagramTextItem.
     connect(scene, SIGNAL(itemInserted(DiagramItem*)),
             this, SLOT(itemInserted(DiagramItem*)));
-    connect(scene, SIGNAL(itemsInserted(DiagramItem*,std::size_t)),
-            this, SLOT(itemsInserted(DiagramItem*,std::size_t)));
+    connect(scene, SIGNAL(itemsInserted(DiagramItem*,std::size_t,const std::vector<std::vector<double>>&)),
+            this, SLOT(itemsInserted(DiagramItem*,std::size_t,const std::vector<std::vector<double>>&)));
 //    connect(scene, SIGNAL(itemsInserted(DiagramItem *item, std::size_t nModels)),
 //            this, SLOT(itemsInserted(DiagramItem *item, std::size_t nModels)));
 
@@ -217,6 +219,7 @@ void MainWindow::deleteItem()
         Gravity.erase(Gravity.begin()+indexUsed);
         RelationToMainChara.erase(RelationToMainChara.begin()+indexUsed);
         EventIndex.erase(EventIndex.begin()+indexUsed);
+        ModelPositions.erase(ModelPositions.begin()+indexUsed);
     }
 }
 //! [3]
@@ -238,7 +241,7 @@ void MainWindow::saveFileAs()
     // -4 since the last four item are the boundary lines
     std::size_t nItem = static_cast<std::size_t> (itemList.size()-4);
     for(int iItem=0;iItem<nItem;iItem++){
-        myfile<<ModelTypes[iItem]<<"\t"<<itemList[nItem-1-iItem]->x()<<"\t"<<itemList[nItem-1-iItem]->y()
+        myfile<<ModelTypes[iItem]<<"\t"<<ModelPositions[iItem][0]<<"\t"<<ModelPositions[iItem][1]
              <<"\t"<<MovementType[iItem]<<"\t"<<MovementDetails[iItem]<<"\t"<<Gravity[iItem]
              <<"\t"<<RelationToMainChara[iItem]<<"\t"<<EventIndex[iItem]
              <<"\t"<<std::endl;
@@ -309,6 +312,29 @@ void MainWindow::loadFile(){
     scene->addItemsFromList(ModelTypes,ModelPositions);
     setBounds();
 
+}
+
+void MainWindow::editModelProperties(){
+
+QList<QGraphicsItem *> selectedItems = scene->selectedItems();
+std::vector<std::size_t> indicesOfSelectedItems(selectedItems.size(),0);
+//for(std::size_t iModel){
+//}
+
+    QWidget* window = new QWidget;
+    QSpinBox *spinBox1 = new QSpinBox();
+    QGridLayout *layout = new QGridLayout;
+    QLabel *spinBox1Label = new QLabel(tr("Movement Type"));
+
+    spinBox1->setValue(MovementType[0]);
+    layout->addWidget(spinBox1Label,6,0);
+    layout->addWidget(spinBox1,6,1);
+    window->setLayout(layout);
+    window->show();
+    connect(spinBox1,SIGNAL(valueChanged(int)),this,SLOT(setMovementType(int)));
+}
+void MainWindow::setMovementType(int newValue){
+    std::cout<<"Movement changed to "<<newValue<<std::endl;
 }
 
 void MainWindow::setMapSize()
@@ -395,6 +421,10 @@ void MainWindow::checkItemPosition(){
     bool tooFarUp = true;
     bool tooFarDown = true;
     QList<QGraphicsItem *> list = scene->items();
+    std::size_t posVec = 0;
+
+    // Initialization
+    std::vector<std::size_t> indices(0,0);
 
     QGraphicsItem *item;
     for(int iItem=0;iItem<list.size()-4;iItem++) {
@@ -406,11 +436,43 @@ void MainWindow::checkItemPosition(){
          tooFarUp = (item->y())<0;
          tooFarDown = (item->y()+item->sceneBoundingRect().height())>SceneHeight;
          if(tooFarRight||tooFarLeft||tooFarUp||tooFarDown){
+
+             // Save indices of deleted item in the list. Used further below
+             for(std::size_t iItem2=0;iItem2<std::size_t(list.size()-4);iItem2++){
+                 if(list[iItem2]==item){
+                     indices.push_back(iItem2);
+                     posVec++;
+                 }
+             }
+
              scene->removeItem(item);
              delete item;
          }
      }
 
+//    std::cout<<"indices.size(): "<<indices.size()<<std::endl;
+//    std::cout<<"Before - ModelTypes.size(): "<<ModelTypes.size()<<std::endl;
+
+    // Go in the inverted direction for deleting otherwise you end up messing up the indices
+    std::size_t maxSize = ModelTypes.size();
+    for(std::size_t iItem=0;iItem<indices.size();iItem++){
+
+
+        std::size_t indexUsed = maxSize-1-indices[iItem];
+
+        std::cout<<"indexUsed "<<indexUsed<<std::endl;
+        std::cout<<"ModelPosition.size(): "<<ModelPositions.size()<<std::endl;
+        ModelTypes.erase(ModelTypes.begin()+indexUsed);
+        MovementType.erase(MovementType.begin()+indexUsed);
+        MovementDetails.erase(MovementDetails.begin()+indexUsed);
+        Gravity.erase(Gravity.begin()+indexUsed);
+        RelationToMainChara.erase(RelationToMainChara.begin()+indexUsed);
+        EventIndex.erase(EventIndex.begin()+indexUsed);
+
+        ModelPositions.erase(ModelPositions.begin()+indexUsed);
+    }
+
+    std::cout<<"After - ModelTypes.size(): "<<ModelTypes.size()<<std::endl;
 //    std::cout<<"Right"<<tooFarRight<<"\tLeft"<<tooFarLeft<<"\tUp"<<tooFarUp<<"\tDown"<<tooFarDown<<std::endl;
 }
 
@@ -463,11 +525,19 @@ void MainWindow::itemInserted(DiagramItem *item)
     ModelTypes.push_back(item->diagramType());
 }
 
-void MainWindow::itemsInserted(DiagramItem *item, std::size_t nModels){
+void MainWindow::itemsInserted(DiagramItem *item, std::size_t nModels,const std::vector<std::vector<double>>& modelPositions){
 //    scene->setMode(DiagramScene::Mode(3));
 //    buttonGroup->button(int(item->diagramType()))->setChecked(false);
 
+
+
     for(std::size_t iModel=0;iModel<nModels;iModel++){
+
+        ModelPositions.push_back(std::vector<double>(2,0));
+        ModelPositions[ModelPositions.size()-1][0] = modelPositions[iModel][0];
+        ModelPositions[ModelPositions.size()-1][1] = modelPositions[iModel][1];
+        std::cout<<"Pos: "<<ModelPositions[ModelPositions.size()-1][0]<<" - "<<ModelPositions[ModelPositions.size()-1][1]<<std::endl;
+
         switch (item->diagramType()) {
         // Archer
         case DiagramItem::DiagramType(0):
@@ -676,8 +746,8 @@ void MainWindow::createToolBox()
     QGridLayout *layout = new QGridLayout;
     // The createCellWidget() function sets up the buttons in the tabbed widget item and is examined later.
     layout->addWidget(createCellWidget(tr("MainChara"), DiagramItem::MainChara), 0, 0);
-    layout->addWidget(createCellWidget(tr("Monster"), DiagramItem::Monster),0, 1);
-    layout->addWidget(createCellWidget(tr("CatGirl"), DiagramItem::CatGirl), 1, 0);
+    layout->addWidget(createCellWidget(tr("CatGirl"), DiagramItem::CatGirl), 0, 1);
+    layout->addWidget(createCellWidget(tr("Monster"), DiagramItem::Monster),1, 0);
     layout->addWidget(createCellWidget(tr("Tree"), DiagramItem::Tree), 1, 1);
 
     // Not Commented -----------------------------------------------------
@@ -796,6 +866,11 @@ void MainWindow::createActions()
     setMapSizeAction->setStatusTip(tr("Set the map size to a user defined value"));
     connect(setMapSizeAction, SIGNAL(triggered()), this, SLOT(setMapSize()));
 
+    editModelPropertiesAction = new QAction(tr("Set Properties"), this);
+    editModelPropertiesAction->setShortcut(tr("Ctrl+E"));
+    editModelPropertiesAction->setStatusTip(tr("Modify the properties such as movement type and so on"));
+    connect(editModelPropertiesAction, SIGNAL(triggered()), this, SLOT(editModelProperties()));
+
     boldAction = new QAction(tr("Bold"), this);
     boldAction->setCheckable(true);
     QPixmap pixmap(":/images/bold.png");
@@ -832,6 +907,7 @@ void MainWindow::createMenus()
     itemMenu->addSeparator();
     itemMenu->addAction(toFrontAction);
     itemMenu->addAction(sendBackAction);
+    itemMenu->addAction(editModelPropertiesAction);
 
     aboutMenu = menuBar()->addMenu(tr("&Help"));
     aboutMenu->addAction(aboutAction);

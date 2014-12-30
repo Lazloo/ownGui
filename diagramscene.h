@@ -98,7 +98,7 @@ signals:
     void textInserted(QGraphicsTextItem *item);
     void itemSelected(QGraphicsItem *item);
     void checkItemPosition();
-    void itemsInserted(DiagramItem *item, std::size_t nModels);
+    void itemsInserted(DiagramItem *item, std::size_t nModels, const std::vector<std::vector<double>>& modelPosition);
     void testSignal(DiagramItem *item, std::size_t nModels);
 
 protected:

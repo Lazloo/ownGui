@@ -62,10 +62,10 @@ DiagramItem::DiagramItem(DiagramType diagramType, QMenu *contextMenu,
             path = ":/images/MainChara.png";
             break;
         case Monster:
-            path = ":/images/CatGirt.png";
+            path = ":/images/Monster.png";
             break;
         case CatGirl:
-            path = ":/images/Monster.png";
+            path = ":/images/CatGirt.png";
             break;
         case Tree:
             path = ":/images/Baum_1.png";

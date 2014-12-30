@@ -42,8 +42,10 @@
 #define MAINWINDOW_H
 
 #include "diagramitem.h"
-
+#include <QDialog>
 #include <QMainWindow>
+#include <QListWidget>
+#include <QStackedWidget>
 
 class DiagramScene;
 
@@ -81,7 +83,7 @@ private slots:
     void bringToFront();
     void sendToBack();
     void itemInserted(DiagramItem *item);
-    void itemsInserted(DiagramItem *item, std::size_t nModels);
+    void itemsInserted(DiagramItem *item, std::size_t nModels,const std::vector<std::vector<double>>& modelPositions);
     void checkItemPosition();
     void textInserted(QGraphicsTextItem *item);
     void currentFontChanged(const QFont &font);
@@ -97,6 +99,8 @@ private slots:
     void itemSelected(QGraphicsItem *item);
     void about();
     void setBounds();
+    void editModelProperties();
+    void setMovementType(int newValue);
 
 private:
     void createToolBox();
@@ -118,6 +122,7 @@ private:
     QAction *saveFileAction;
     QAction *loadFileAction;
     QAction *setMapSizeAction;
+    QAction *editModelPropertiesAction;
     QAction *addAction;
     QAction *deleteAction;
 
@@ -163,8 +168,6 @@ private:
     double SceneWidth;
     double SceneHeight;
 
-    // Container for all the properties of the models
-
     std::vector<int> ModelTypes;
     std::vector<std::vector<double>> ModelPositions;
     // Movement type:
@@ -188,6 +191,7 @@ private:
     //			     and model are near to each other
     //		- 0 ... nothing happens
     std::vector<std::size_t> EventIndex;
+
 };
 //! [0]
 

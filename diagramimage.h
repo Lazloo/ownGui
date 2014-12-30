@@ -1,35 +1,42 @@
 #ifndef DIAGRAMIMAGE_H
 #define DIAGRAMIMAGE_H
 
-#include <QPainter>
-#include <QGraphicsScene>
-#include <QGraphicsSceneContextMenuEvent>
-#include <QMenu>
-#include <QPainter>
+#include <QObject>
 
-class DiagramImage : public QPainter
+class diagramImage : public QPixmap
 {
+    Q_OBJECT
 public:
-    enum { Type = UserType + 15 };
-    enum DiagramType { Step, Conditional, StartEnd, Io };
-    DiagramImage(DiagramType diagramType, QMenu *contextMenu, QGraphicsItem *parent = 0);
-    void removeArrow(Arrow *arrow);
-    void removeArrows();
-    DiagramType diagramType() const { return myDiagramType; }
-    QPolygonF polygon() const { return myPolygon; }
-    void addArrow(Arrow *arrow);
-    QPixmap image() const;
-    int type() const Q_DECL_OVERRIDE { return Type;}
+    explicit diagramImage(QObject *parent = 0);
 
-protected:
-    void contextMenuEvent(QGraphicsSceneContextMenuEvent *event) Q_DECL_OVERRIDE;
-    QVariant itemChange(GraphicsItemChange change, const QVariant &value) Q_DECL_OVERRIDE;
+
+// ------------------------ Gets -----------------------
+    std::size_t getModelType(){
+        return ModelType;
+    }
+    std::size_t getMovementType(){
+        return MovementType;
+    }
+    double getMovementDetail(){
+        return MovementDetail;
+    }
+    bool getGravity(){
+        return Gravity;
+    }
+    std::size_t getRelationToMainChara(){
+        return RelationToMainChara;
+    }
+// ------------------------ Sets -----------------------
+signals:
+
+public slots:
 
 private:
-    DiagramType myDiagramType;
-    QPolygonF myPolygon;
-    QMenu *myContextMenu;
-    QList<Arrow *> arrows;
+    std::size_t ModelType;
+    std::size_t MovementType;
+    double MovementDetail;
+    bool Gravity;
+    std::size_t RelationToMainChara;
 };
 
 #endif // DIAGRAMIMAGE_H

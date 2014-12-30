@@ -148,6 +148,8 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
     DiagramItem item = DiagramItem(myItemType, myItemMenu);
     // Create Pixmap Scene Item which must be allocated inorder to stay in the scene even after leaving the context of this function
     QGraphicsPixmapItem * itemImage;
+    // Vector containing the poistion of the model. Needed for the emitting
+    std::vector<std::vector<double>> posVec(1,std::vector<double>(2,0));
     switch (myMode) {
         // We simply create a new DiagramItem and add it to the scene at the position the mouse was pressed. Note that the origin of its
         // local coordinate system will be under the mouse pointer position.
@@ -168,7 +170,11 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             addItem(itemImage);
 
             // Emiting does only make sure to return to the old state before clicking
-            emit itemsInserted(&item,1);
+//            item.setPos(itemImage->x(),itemImage->y());
+            posVec[0][0] = itemImage->x();
+            posVec[0][1] = itemImage->y();
+
+            emit itemsInserted(&item,1,posVec);
             break;
         case InsertHorizontalLine:
 //            line = new QGraphicsLineItem(QLineF(mouseEvent->scenePos(),
@@ -246,7 +252,7 @@ void DiagramScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 // In the mouseReleaseEvent() function we need to check if an arrow should be added to the scene
 void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
-    std::cout<<"Mouse Event: "<<myMode<<"\tcheck: "<<InsertVerticalLine<<"\tEndOfLine: "<<EndOfLine<<std::endl;
+//    std::cout<<"Mouse Event: "<<myMode<<"\tcheck: "<<InsertVerticalLine<<"\tEndOfLine: "<<EndOfLine<<std::endl;
 
     // Get Position of start and end of the model line
     if ((myMode == InsertHorizontalLine||myMode == InsertVerticalLine)&&(!EndOfLine)) {
@@ -304,7 +310,7 @@ void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 
         // Add the items to the scenes
         addItemsFromList(modelTypes,modelPositions);
-        emit itemsInserted(&item,nModels);
+        emit itemsInserted(&item,nModels,modelPositions);
     }
     if(myMode == InsertHorizontalLine||myMode == InsertVerticalLine){
         EndOfLine = !EndOfLine;
