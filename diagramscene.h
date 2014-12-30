@@ -42,6 +42,7 @@
 #define DIAGRAMSCENE_H
 
 #include "diagramitem.h"
+#include "diagramImage.h"
 #include "diagramtextitem.h"
 
 #include <QGraphicsScene>
@@ -99,6 +100,7 @@ signals:
     void itemSelected(QGraphicsItem *item);
     void checkItemPosition();
     void itemsInserted(DiagramItem *item, std::size_t nModels, const std::vector<std::vector<double>>& modelPosition);
+    void itemsInserted(diagramImage* item,DiagramItem::DiagramType type);
     void testSignal(DiagramItem *item, std::size_t nModels);
 
 protected:

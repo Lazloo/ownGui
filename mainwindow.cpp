@@ -90,6 +90,9 @@ MainWindow::MainWindow():ModelPositions(0,std::vector<double>(0,0)),ModelTypes(0
             this, SLOT(itemInserted(DiagramItem*)));
     connect(scene, SIGNAL(itemsInserted(DiagramItem*,std::size_t,const std::vector<std::vector<double>>&)),
             this, SLOT(itemsInserted(DiagramItem*,std::size_t,const std::vector<std::vector<double>>&)));
+    connect(scene, SIGNAL(itemsInserted(diagramImage*,DiagramItem::DiagramType)),
+            this, SLOT(itemsInserted(diagramImage*,DiagramItem::DiagramType)));
+
 //    connect(scene, SIGNAL(itemsInserted(DiagramItem *item, std::size_t nModels)),
 //            this, SLOT(itemsInserted(DiagramItem *item, std::size_t nModels)));
 
@@ -579,11 +582,9 @@ void MainWindow::itemsInserted(DiagramItem *item, std::size_t nModels,const std:
 }
 //! [7]
 
-void MainWindow::itemsInserted(diagramImage *item,DiagramItem::DiagramType type, std::size_t nModels){
+void MainWindow::itemsInserted(diagramImage *item,DiagramItem::DiagramType type){
     scene->setMode(DiagramScene::Mode(3));
     buttonGroup->button(int(type))->setChecked(false);
-
-    for(std::size_t iModel=0;iModel<nModels;iModel++){
 
 //        ModelPositions.push_back(std::vector<double>(2,0));
 //        ModelPositions[ModelPositions.size()-1][0] = modelPositions[iModel][0];
@@ -632,7 +633,7 @@ void MainWindow::itemsInserted(diagramImage *item,DiagramItem::DiagramType type,
 
         // Update lists
         ImageVec.push_back(item);
-    }
+        std::cout<<"New Type = "<<(ImageVec[ImageVec.size()-1])->getModelType()<<std::endl;
 }
 
 //! [8]

@@ -186,6 +186,7 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             posVec[0][1] = itemImage->y();
 
             emit itemsInserted(&item,1,posVec);
+            emit itemsInserted(newImage,item.diagramType());
             break;
         case InsertHorizontalLine:
 //            line = new QGraphicsLineItem(QLineF(mouseEvent->scenePos(),
