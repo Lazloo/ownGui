@@ -39,6 +39,7 @@
 ****************************************************************************/
 
 #include "diagramscene.h"
+#include "diagramimage.h"
 #include "arrow.h"
 #include <iostream>
 #include <QTextCursor>
@@ -60,6 +61,7 @@ DiagramScene::DiagramScene(QMenu *itemMenu, QObject *parent) : QGraphicsScene(pa
     myTextColor = Qt::black;
     myLineColor = Qt::black;
     EndOfLine = false;
+
 }
 //! [0]
 
@@ -148,12 +150,19 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
     DiagramItem item = DiagramItem(myItemType, myItemMenu);
     // Create Pixmap Scene Item which must be allocated inorder to stay in the scene even after leaving the context of this function
     QGraphicsPixmapItem * itemImage;
+    diagramImage * newImage;
+
+//    DiagramImage * itemImage;
     // Vector containing the poistion of the model. Needed for the emitting
     std::vector<std::vector<double>> posVec(1,std::vector<double>(2,0));
     switch (myMode) {
         // We simply create a new DiagramItem and add it to the scene at the position the mouse was pressed. Note that the origin of its
         // local coordinate system will be under the mouse pointer position.
         case InsertItem:
+
+
+//            std::cout<<"Test:"<<objectImage.getGravity()<<std::endl;
+
             // Define QGraphicsPixmapItem
             itemImage = new QGraphicsPixmapItem(item.image());
 //            itemImage->
@@ -168,6 +177,8 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 //            bool tooFarRight = (itemImage->y()+itemImage->sceneBoundingRect()).width())>;
             // Add Item to the current scene
             addItem(itemImage);
+
+            newImage = new diagramImage(itemImage);
 
             // Emiting does only make sure to return to the old state before clicking
 //            item.setPos(itemImage->x(),itemImage->y());

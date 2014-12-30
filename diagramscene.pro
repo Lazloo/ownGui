@@ -5,14 +5,14 @@ HEADERS	    =   mainwindow.h \
 		diagramscene.h \
 		arrow.h \
 		diagramtextitem.h \
-    diagramimage.h
+                diagramImage.h
 SOURCES	    =   mainwindow.cpp \
 		diagramitem.cpp \
 		main.cpp \
 		arrow.cpp \
 		diagramtextitem.cpp \
 		diagramscene.cpp \
-    diagramimage.cpp
+                diagramImage.cpp
 RESOURCES   =	diagramscene.qrc
 
 

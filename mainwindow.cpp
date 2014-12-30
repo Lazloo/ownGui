@@ -41,10 +41,12 @@
 #include <QListWidget>
 #include <QStackedWidget>
 #include <QFileDialog>
+#include <QGraphicsPixmapItem>
 #include "arrow.h"
 #include "diagramitem.h"
 #include "diagramscene.h"
 #include "diagramtextitem.h"
+#include "diagramimage.h"
 #include "mainwindow.h"
 #include <iostream>
 #include <QtWidgets>
@@ -55,7 +57,7 @@
 const int InsertTextButton = 10;
 
 //! [0]
-MainWindow::MainWindow():ModelPositions(0,std::vector<double>(0,0)),ModelTypes(0,0)
+MainWindow::MainWindow():ModelPositions(0,std::vector<double>(0,0)),ModelTypes(0,0),ImageVec(0,NULL)
 {
     // In the constructor we call methods to create the widgets and layouts of the example before we create the diagram scene.
     // All the things right below the toolbar
@@ -192,7 +194,7 @@ void MainWindow::deleteItem()
     foreach (QGraphicsItem *item, scene->selectedItems()) {
 
         // Save indices of deleted item in the list. Used further below
-        for(std::size_t iItem=0;std::size_t(iItem<itemList.size()-4);iItem++){
+        for(std::size_t iItem=0;iItem<std::size_t(itemList.size()-4);iItem++){
             if(itemList[iItem]==item){
                 indices[posVec] =iItem;
                 posVec++;
@@ -240,7 +242,7 @@ void MainWindow::saveFileAs()
     QList<QGraphicsItem *> itemList = scene->items();
     // -4 since the last four item are the boundary lines
     std::size_t nItem = static_cast<std::size_t> (itemList.size()-4);
-    for(int iItem=0;iItem<nItem;iItem++){
+    for(std::size_t iItem=0;iItem<nItem;iItem++){
         myfile<<ModelTypes[iItem]<<"\t"<<ModelPositions[iItem][0]<<"\t"<<ModelPositions[iItem][1]
              <<"\t"<<MovementType[iItem]<<"\t"<<MovementDetails[iItem]<<"\t"<<Gravity[iItem]
              <<"\t"<<RelationToMainChara[iItem]<<"\t"<<EventIndex[iItem]
@@ -262,7 +264,7 @@ void MainWindow::loadFile(){
 
     // Clear old Scene
     QList<QGraphicsItem *> itemProto = scene->items();
-    for(std::size_t iItem=0;iItem<itemProto.size()-4;iItem++) {
+    for(std::size_t iItem=0;iItem<std::size_t(itemProto.size()-4);iItem++) {
         delete itemProto[iItem];
     }
 
@@ -528,9 +530,6 @@ void MainWindow::itemInserted(DiagramItem *item)
 void MainWindow::itemsInserted(DiagramItem *item, std::size_t nModels,const std::vector<std::vector<double>>& modelPositions){
 //    scene->setMode(DiagramScene::Mode(3));
 //    buttonGroup->button(int(item->diagramType()))->setChecked(false);
-
-
-
     for(std::size_t iModel=0;iModel<nModels;iModel++){
 
         ModelPositions.push_back(std::vector<double>(2,0));
@@ -579,6 +578,62 @@ void MainWindow::itemsInserted(DiagramItem *item, std::size_t nModels,const std:
     }
 }
 //! [7]
+
+void MainWindow::itemsInserted(diagramImage *item,DiagramItem::DiagramType type, std::size_t nModels){
+    scene->setMode(DiagramScene::Mode(3));
+    buttonGroup->button(int(type))->setChecked(false);
+
+    for(std::size_t iModel=0;iModel<nModels;iModel++){
+
+//        ModelPositions.push_back(std::vector<double>(2,0));
+//        ModelPositions[ModelPositions.size()-1][0] = modelPositions[iModel][0];
+//        ModelPositions[ModelPositions.size()-1][1] = modelPositions[iModel][1];
+        std::cout<<"Pos: "<<ModelPositions[ModelPositions.size()-1][0]<<" - "<<ModelPositions[ModelPositions.size()-1][1]<<std::endl;
+
+        switch (type) {
+        // Archer
+        case DiagramItem::DiagramType(0):
+            item->setModelType(0);
+            item->setMovementType(1);
+            item->setMovementDetail(0);
+            item->setGravity(1);
+            item->setRelationToMainChara(2);
+            item->setEventIndex(0);
+            break;
+        // Cat Girl
+        case DiagramItem::DiagramType(1):
+            item->setModelType(1);
+            item->setMovementType(1);
+            item->setMovementDetail(0);
+            item->setGravity(1);
+            item->setRelationToMainChara(2);
+            item->setEventIndex(0);
+            break;
+        // Monster
+        case DiagramItem::DiagramType(2):
+            item->setModelType(2);
+            item->setMovementType(1);
+            item->setMovementDetail(0);
+            item->setGravity(1);
+            item->setRelationToMainChara(1);
+            item->setEventIndex(0);
+            break;
+        // Tree
+        case DiagramItem::DiagramType(3):
+            item->setModelType(3);
+            item->setMovementType(0);
+            item->setMovementDetail(0);
+            item->setGravity(0);
+            item->setRelationToMainChara(0);
+            item->setEventIndex(0);
+        default:
+            break;
+        }
+
+        // Update lists
+        ImageVec.push_back(item);
+    }
+}
 
 //! [8]
 // We simply set the mode of the scene back to the mode it had before the text was inserted.

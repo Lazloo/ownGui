@@ -48,6 +48,7 @@
 #include <QGraphicsPixmapItem>
 //! [0]
 
+
 // In the constructor we create the items polygon according to diagramType. QGraphicsItems are not movable or selectable by default, so we must set these properties.
 DiagramItem::DiagramItem(DiagramType diagramType, QMenu *contextMenu,
              QGraphicsItem *parent)

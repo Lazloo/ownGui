@@ -1,8 +1,8 @@
 #include "diagramimage.h"
 #include <iostream>
+//#include
+//diagramImage::diagramImage()
+//{
+//    std::cout<<"Test2"<<std::endl;
+//}
 
-diagramImage::diagramImage(QObject *parent) :
-    QObject(parent)
-{
-    std::cout<<"Test Initiniliazation"<<std::endl;
-}
