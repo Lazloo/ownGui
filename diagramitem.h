@@ -69,7 +69,7 @@ class DiagramItem :public QGraphicsPolygonItem
 {
 public:
     enum { Type = UserType + 15 };
-    enum DiagramType { MainChara, Monster, CatGirl, Tree };
+    enum DiagramType { MainChara, CatGirl, Monster, Tree };
 
     DiagramItem(DiagramType diagramType, QMenu *contextMenu, QGraphicsItem *parent = 0);
 

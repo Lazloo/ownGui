@@ -1,9 +1,11 @@
+... load objects!!!!! + addModelFromList
+
 - Add Dialog for editing properties of the models
 - debug what happens if the model button are unchecked (right now nothing happens)
 - add fadenkreuz
 -add new class=diagramImages containing all neccessary information about the imes such as movementType and so on
 ... delete objects
 ... save objects
-... load objects
+
 ... check for boundaries
 ... 

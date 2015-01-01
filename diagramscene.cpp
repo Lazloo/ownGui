@@ -185,7 +185,7 @@ void DiagramScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
             posVec[0][0] = itemImage->x();
             posVec[0][1] = itemImage->y();
 
-            emit itemsInserted(&item,1,posVec);
+//            emit itemsInserted(&item,1,posVec);
             emit itemsInserted(newImage,item.diagramType());
             break;
         case InsertHorizontalLine:
@@ -226,6 +226,7 @@ void DiagramScene::addItemsFromList(const std::vector<int> &modelTypes,const std
 
     DiagramItem *item;
     QGraphicsPixmapItem *itemImage;
+    diagramImage * newImage;
     for(std::size_t iItem=0;iItem<modelTypes.size();iItem++){
 
         // Using the constructor of DiagramItem in order to create the Qpixmap
@@ -236,7 +237,7 @@ void DiagramScene::addItemsFromList(const std::vector<int> &modelTypes,const std
 
         // Move Item to the current mouse position and center it afterwards
         itemImage->setPos(QPointF(modelPositions[iItem][0],modelPositions[iItem][1]));
-        std::cout<<"Type: "<<DiagramItem::DiagramType(modelTypes[iItem])<<"\tx: "<<modelPositions[iItem][0]<<"\ty: "<<modelPositions[iItem][1]<<std::endl;
+//        std::cout<<"Type: "<<DiagramItem::DiagramType(modelTypes[iItem])<<"\tx: "<<modelPositions[iItem][0]<<"\ty: "<<modelPositions[iItem][1]<<std::endl;
 
         itemImage->setVisible(true);
         itemImage->setFlag(QGraphicsItem::ItemIsSelectable, true);
@@ -245,6 +246,9 @@ void DiagramScene::addItemsFromList(const std::vector<int> &modelTypes,const std
 
         // Add Item to the current scene
         addItem(itemImage);
+        newImage = new diagramImage(itemImage);
+
+        emit itemsInserted(newImage,item->diagramType());
     }
 }
 
@@ -308,13 +312,15 @@ void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
         std::vector<int> modelTypes(nModels,myItemType);
         std::vector<std::vector<double>> modelPositions(nModels,std::vector<double>(2,0));
 
-        int signDistance = 1 - 2*static_cast<unsigned>((startPoint.x()-endPoint.x())>0);
+        int signDistance = 0;
         for(std::size_t iModel=0;iModel<nModels;iModel++){
             if(myMode == InsertHorizontalLine){
+                signDistance = 1 - 2*static_cast<unsigned>((startPoint.x()-endPoint.x())>0);
                 modelPositions[iModel][0] = startPoint.x() + double(signDistance)*double(iModel)*double(width);
                 modelPositions[iModel][1] = startPoint.y();
             }
             else{
+                signDistance = 1 - 2*static_cast<unsigned>((startPoint.y()-endPoint.y())>0);
                 modelPositions[iModel][0] = startPoint.x();
                 modelPositions[iModel][1] = startPoint.y()+ double(signDistance)*double(iModel)*double(height);
             }
@@ -322,7 +328,7 @@ void DiagramScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
 
         // Add the items to the scenes
         addItemsFromList(modelTypes,modelPositions);
-        emit itemsInserted(&item,nModels,modelPositions);
+//        emit itemsInserted(&item,nModels,modelPositions);
     }
     if(myMode == InsertHorizontalLine||myMode == InsertVerticalLine){
         EndOfLine = !EndOfLine;

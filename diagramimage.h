@@ -7,7 +7,7 @@ class diagramImage
 {
 public:
     diagramImage(QGraphicsPixmapItem *itemImage){
-        std::cout<<"Test4"<<std::endl;
+//        std::cout<<"Test4"<<std::endl;
         ModelType = 0;
         MovementType = 0;
         MovementDetail = 0;

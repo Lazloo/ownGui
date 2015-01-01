@@ -198,14 +198,18 @@ void MainWindow::deleteItem()
 
         // Save indices of deleted item in the list. Used further below
         for(std::size_t iItem=0;iItem<std::size_t(itemList.size()-4);iItem++){
-            if(itemList[iItem]==item){
+//            if(itemList[iItem]==item){
+//                indices[posVec] =iItem;
+//                posVec++;
+//            }
+            if(ImageVec[iItem]->getItemImage()==item){
                 indices[posVec] =iItem;
                 posVec++;
             }
         }
 
-         if (item->type() == DiagramItem::Type)
-             qgraphicsitem_cast<DiagramItem *>(item)->removeArrows();
+//         if (item->type() == DiagramItem::Type)
+//             qgraphicsitem_cast<DiagramItem *>(item)->removeArrows();
          scene->removeItem(item);
          delete item;
      }
@@ -215,17 +219,16 @@ void MainWindow::deleteItem()
     std::sort (indices.begin(),indices.end());
 
     // Go in the inverted direction for deleting otherwise you end up messing up the indices
-    std::size_t maxSize = ModelTypes.size();
+//    std::size_t maxSize = ModelTypes.size();
     for(std::size_t iItem=0;iItem<indices.size();iItem++){
-        std::size_t indexUsed = maxSize-1-indices[iItem];
-        ModelTypes.erase(ModelTypes.begin()+indexUsed);
-        MovementType.erase(MovementType.begin()+indexUsed);
-        MovementDetails.erase(MovementDetails.begin()+indexUsed);
-        Gravity.erase(Gravity.begin()+indexUsed);
-        RelationToMainChara.erase(RelationToMainChara.begin()+indexUsed);
-        EventIndex.erase(EventIndex.begin()+indexUsed);
-        ModelPositions.erase(ModelPositions.begin()+indexUsed);
+        std::size_t indexUsed = indices[iItem];
+        ImageVec.erase(ImageVec.begin()+indexUsed);
     }
+
+//    // Test
+//    for(std::size_t iItem=0;iItem<ImageVec.size();iItem++){
+//        std::cout<<"Type: "<<ImageVec[iItem]->getModelType()<<std::endl;
+//    }
 }
 //! [3]
 
@@ -244,11 +247,10 @@ void MainWindow::saveFileAs()
 
     QList<QGraphicsItem *> itemList = scene->items();
     // -4 since the last four item are the boundary lines
-    std::size_t nItem = static_cast<std::size_t> (itemList.size()-4);
-    for(std::size_t iItem=0;iItem<nItem;iItem++){
-        myfile<<ModelTypes[iItem]<<"\t"<<ModelPositions[iItem][0]<<"\t"<<ModelPositions[iItem][1]
-             <<"\t"<<MovementType[iItem]<<"\t"<<MovementDetails[iItem]<<"\t"<<Gravity[iItem]
-             <<"\t"<<RelationToMainChara[iItem]<<"\t"<<EventIndex[iItem]
+    for(std::size_t iItem=0;iItem<ImageVec.size();iItem++){
+        myfile<<ImageVec[iItem]->getModelType()<<"\t"<<ImageVec[iItem]->getItemImage()->x()<<"\t"<<ImageVec[iItem]->getItemImage()->y()
+             <<"\t"<<ImageVec[iItem]->getMovementType()<<"\t"<<ImageVec[iItem]->getMovementDetail()<<"\t"<<ImageVec[iItem]->getGravity()
+             <<"\t"<<ImageVec[iItem]->getRelationToMainChara()<<"\t"<<ImageVec[iItem]->getEventIndex()
              <<"\t"<<std::endl;
     }
     myfile.close();
@@ -289,7 +291,8 @@ void MainWindow::loadFile(){
     Gravity.resize(nModels,0);
     RelationToMainChara.resize(nModels,0);
     EventIndex.resize(nModels,0);
-
+    // Empty this vec since items are added after they are created in addItemsFromList
+    ImageVec.resize(0,NULL);
     std::size_t lineIndex=0;
 
     infile.open(fileName.toStdString());
@@ -298,48 +301,181 @@ void MainWindow::loadFile(){
     std::istringstream iss1(line);
     iss1>> SceneWidth >> SceneHeight;
 
+    std::cout<<"SceneWidth: "<<SceneWidth<<"\tSceneHeight: "<<SceneHeight<<std::endl;
+
     while (std::getline(infile, line))
     {
         std::istringstream iss(line);
-        if (!(iss >> ModelTypes[lineIndex] >> ModelPositions[lineIndex][0]>>ModelPositions[lineIndex][1])
-                     >>MovementType[lineIndex]>>MovementDetails[lineIndex]>>Gravity[lineIndex]
-                     >>RelationToMainChara[lineIndex]>>EventIndex[lineIndex]
-                ) {
+//        std::istringstream iss("1 2.1 3.0 4 5 6 7 8");
+//        double val;
+//        iss >> val;
+//        std::cout<<val<<std::endl;
+//        iss >> val;
+//        std::cout<<val<<std::endl;
+//        iss >> val;
+//        std::cout<<val<<std::endl;
+//        iss >> val;
+//        std::cout<<val<<std::endl;
+//        iss >> val;
+//        std::cout<<val<<std::endl;
+
+        bool testBool=false;
+        testBool=testBool||!(iss >> ModelTypes[lineIndex]);
+        std::cout<<"ModelType: "<<ModelTypes[lineIndex];
+        testBool=testBool||!(iss >> ModelPositions[lineIndex][0]);
+        std::cout<<"\tModelPositions: "<<ModelPositions[lineIndex][0];
+        testBool=testBool||!(iss >> ModelPositions[lineIndex][1]);
+        testBool=testBool||!(iss >> MovementType[lineIndex]);
+        std::cout<<"MovementType: "<<MovementType[lineIndex];
+        testBool=testBool||!(iss >> MovementDetails[lineIndex]);
+        std::cout<<"MovementDetails: "<<MovementDetails[lineIndex];
+        testBool=testBool||!(iss >> Gravity[lineIndex]);
+        testBool=testBool||!(iss >> RelationToMainChara[lineIndex]);
+        testBool=testBool||!(iss >> EventIndex[lineIndex]);
+        std::cout<<"\ttestBool: "<<testBool<<std::endl;
+
+        if(testBool)
+        {
             std::cout<<"break"<<std::endl;
             break;
         } // error
-        std::cout<<"ModelType: "<<ModelTypes[lineIndex]<<"\tx: "<<ModelPositions[lineIndex][0]<<"\ty: "<<ModelPositions[lineIndex][1]<<std::endl;
         lineIndex++;
     }
 
     infile.close();
 
     scene->addItemsFromList(ModelTypes,ModelPositions);
-    setBounds();
+    std::cout<<"Before ImageVec For: "<<ImageVec.size()<<std::endl;
+    for(std::size_t iModel=0;iModel<nModels;iModel++){
+        ImageVec[iModel]->setModelType(ModelTypes[iModel]);
+        ImageVec[iModel]->setMovementType(MovementType[iModel]);
+        ImageVec[iModel]->setMovementDetail(MovementDetails[iModel]);
+        ImageVec[iModel]->setGravity(Gravity[iModel]);
+        ImageVec[iModel]->setRelationToMainChara(RelationToMainChara[iModel]);
+        ImageVec[iModel]->setEventIndex(EventIndex[iModel]);
+    }
 
+    view->setSceneRect(QRectF(0, 0, SceneWidth+10, SceneHeight+10));
+    scene->setSceneRect(QRectF(0, 0, SceneWidth, SceneHeight));
+    setBounds();
+    scene->setMode(DiagramScene::MoveItem);
 }
 
 void MainWindow::editModelProperties(){
 
 QList<QGraphicsItem *> selectedItems = scene->selectedItems();
 std::vector<std::size_t> indicesOfSelectedItems(selectedItems.size(),0);
-//for(std::size_t iModel){
-//}
+std::size_t posItem = 0;
+std::cout<<"nSelected Items: "<<selectedItems.size()<<std::endl;
+
+for (std::size_t iSelected=0;iSelected<std::size_t(selectedItems.size());iSelected++) {
+    for(std::size_t iItem=0;iItem<ImageVec.size();iItem++){
+        if(ImageVec[iItem]->getItemImage()==selectedItems[iSelected]){
+            std::cout<<"Selected Items: "<<iItem<<std::endl;
+            indicesOfSelectedItems[posItem]=iItem;
+            posItem++;
+        }
+    }
+}
 
     QWidget* window = new QWidget;
-    QSpinBox *spinBox1 = new QSpinBox();
     QGridLayout *layout = new QGridLayout;
-    QLabel *spinBox1Label = new QLabel(tr("Movement Type"));
 
-    spinBox1->setValue(MovementType[0]);
-    layout->addWidget(spinBox1Label,6,0);
-    layout->addWidget(spinBox1,6,1);
+    QSpinBox *spinBoxMovementType = new QSpinBox();
+    QLabel *spinBoxLabelMovementType = new QLabel(tr("Movement Type"));
+    spinBoxMovementType->setValue(ImageVec[indicesOfSelectedItems[0]]->getMovementType());
+    layout->addWidget(spinBoxLabelMovementType,6,0);
+    layout->addWidget(spinBoxMovementType,6,1);
+
+    QDoubleSpinBox *spinBoxMovementDetail = new QDoubleSpinBox();
+    QLabel *spinBoxLabelMovementDetail = new QLabel(tr("Movement Details"));
+    spinBoxMovementDetail->setValue(ImageVec[indicesOfSelectedItems[0]]->getMovementDetail());
+    layout->addWidget(spinBoxLabelMovementDetail,7,0);
+    layout->addWidget(spinBoxMovementDetail,7,1);
+
+    QCheckBox *checkBoxGravity = new QCheckBox();
+    QLabel *checkBoxLabelGravity = new QLabel(tr("Gravity"));
+    checkBoxGravity->setChecked(ImageVec[indicesOfSelectedItems[0]]->getGravity()==1);
+    layout->addWidget(checkBoxLabelGravity,8,0);
+    layout->addWidget(checkBoxGravity,8,1);
+
+    QSpinBox *spinBoxRelationToMainChara = new QSpinBox();
+    QLabel *spinBoxLabelRelationToMainChara = new QLabel(tr("Relation to Main Chara"));
+    spinBoxRelationToMainChara->setValue(ImageVec[indicesOfSelectedItems[0]]->getRelationToMainChara());
+    layout->addWidget(spinBoxLabelRelationToMainChara,9,0);
+    layout->addWidget(spinBoxRelationToMainChara,9,1);
+
+    QSpinBox *spinBoxEventIndex = new QSpinBox();
+    QLabel *spinBoxLabelEventIndex = new QLabel(tr("Event Type"));
+    spinBoxEventIndex->setValue(ImageVec[indicesOfSelectedItems[0]]->getEventIndex());
+    layout->addWidget(spinBoxLabelEventIndex,10,0);
+    layout->addWidget(spinBoxEventIndex,10,1);
+
     window->setLayout(layout);
     window->show();
-    connect(spinBox1,SIGNAL(valueChanged(int)),this,SLOT(setMovementType(int)));
+
+    connect(spinBoxMovementType,SIGNAL(valueChanged(int)),this,SLOT(setMovementType(int)));
+    connect(spinBoxMovementDetail,SIGNAL(valueChanged(double)),this,SLOT(setMovementDetails(double)));
+    connect(checkBoxGravity,SIGNAL(stateChanged(int)),this,SLOT(setGravity(int)));
+    connect(spinBoxRelationToMainChara,SIGNAL(valueChanged(int)),this,SLOT(setRelationToMainChara(int)));
+    connect(spinBoxEventIndex,SIGNAL(valueChanged(int)),this,SLOT(setEventIndex(int)));
+
 }
+
 void MainWindow::setMovementType(int newValue){
-    std::cout<<"Movement changed to "<<newValue<<std::endl;
+    QList<QGraphicsItem *> selectedItems = scene->selectedItems();
+    for (std::size_t iSelected=0;iSelected<std::size_t(selectedItems.size());iSelected++) {
+        for(std::size_t iItem=0;iItem<ImageVec.size();iItem++){
+            if(ImageVec[iItem]->getItemImage()==selectedItems[iSelected]){
+                ImageVec[iItem]->setMovementType(newValue);
+            }
+        }
+    }
+}
+
+void MainWindow::setMovementDetails(double newValue){
+    QList<QGraphicsItem *> selectedItems = scene->selectedItems();
+    for (std::size_t iSelected=0;iSelected<std::size_t(selectedItems.size());iSelected++) {
+        for(std::size_t iItem=0;iItem<ImageVec.size();iItem++){
+            if(ImageVec[iItem]->getItemImage()==selectedItems[iSelected]){
+                ImageVec[iItem]->setMovementDetail(newValue);
+            }
+        }
+    }
+}
+
+void MainWindow::setGravity(int newValue){
+//    std::cout<<"newValue: "<<newValue<<std::endl;
+    QList<QGraphicsItem *> selectedItems = scene->selectedItems();
+    for (std::size_t iSelected=0;iSelected<std::size_t(selectedItems.size());iSelected++) {
+        for(std::size_t iItem=0;iItem<ImageVec.size();iItem++){
+            if(ImageVec[iItem]->getItemImage()==selectedItems[iSelected]){
+                ImageVec[iItem]->setGravity(newValue==Qt::Checked);
+            }
+        }
+    }
+}
+
+void MainWindow::setRelationToMainChara(int newValue){
+    QList<QGraphicsItem *> selectedItems = scene->selectedItems();
+    for (std::size_t iSelected=0;iSelected<std::size_t(selectedItems.size());iSelected++) {
+        for(std::size_t iItem=0;iItem<ImageVec.size();iItem++){
+            if(ImageVec[iItem]->getItemImage()==selectedItems[iSelected]){
+                ImageVec[iItem]->setRelationToMainChara(newValue);
+            }
+        }
+    }
+}
+
+void MainWindow::setEventIndex(int newValue){
+    QList<QGraphicsItem *> selectedItems = scene->selectedItems();
+    for (std::size_t iSelected=0;iSelected<std::size_t(selectedItems.size());iSelected++) {
+        for(std::size_t iItem=0;iItem<ImageVec.size();iItem++){
+            if(ImageVec[iItem]->getItemImage()==selectedItems[iSelected]){
+                ImageVec[iItem]->setEventIndex(newValue);
+            }
+        }
+    }
 }
 
 void MainWindow::setMapSize()
@@ -426,10 +562,9 @@ void MainWindow::checkItemPosition(){
     bool tooFarUp = true;
     bool tooFarDown = true;
     QList<QGraphicsItem *> list = scene->items();
-    std::size_t posVec = 0;
 
     // Initialization
-    std::vector<std::size_t> indices(0,0);
+    std::vector<std::size_t> indicesInImageVec(0,0);
 
     QGraphicsItem *item;
     for(int iItem=0;iItem<list.size()-4;iItem++) {
@@ -442,11 +577,10 @@ void MainWindow::checkItemPosition(){
          tooFarDown = (item->y()+item->sceneBoundingRect().height())>SceneHeight;
          if(tooFarRight||tooFarLeft||tooFarUp||tooFarDown){
 
-             // Save indices of deleted item in the list. Used further below
+             // Save indices of deleted item in the imageVec. Used further below
              for(std::size_t iItem2=0;iItem2<std::size_t(list.size()-4);iItem2++){
-                 if(list[iItem2]==item){
-                     indices.push_back(iItem2);
-                     posVec++;
+                 if(ImageVec[iItem2]->getItemImage()==item){
+                     indicesInImageVec.push_back(iItem2);
                  }
              }
 
@@ -455,30 +589,15 @@ void MainWindow::checkItemPosition(){
          }
      }
 
-//    std::cout<<"indices.size(): "<<indices.size()<<std::endl;
-//    std::cout<<"Before - ModelTypes.size(): "<<ModelTypes.size()<<std::endl;
+
+    // Bring indices in a defined order
+    std::sort(indicesInImageVec.begin(),indicesInImageVec.end());
 
     // Go in the inverted direction for deleting otherwise you end up messing up the indices
-    std::size_t maxSize = ModelTypes.size();
-    for(std::size_t iItem=0;iItem<indices.size();iItem++){
-
-
-        std::size_t indexUsed = maxSize-1-indices[iItem];
-
-        std::cout<<"indexUsed "<<indexUsed<<std::endl;
-        std::cout<<"ModelPosition.size(): "<<ModelPositions.size()<<std::endl;
-        ModelTypes.erase(ModelTypes.begin()+indexUsed);
-        MovementType.erase(MovementType.begin()+indexUsed);
-        MovementDetails.erase(MovementDetails.begin()+indexUsed);
-        Gravity.erase(Gravity.begin()+indexUsed);
-        RelationToMainChara.erase(RelationToMainChara.begin()+indexUsed);
-        EventIndex.erase(EventIndex.begin()+indexUsed);
-
-        ModelPositions.erase(ModelPositions.begin()+indexUsed);
+    for(std::size_t iItem=0;iItem<indicesInImageVec.size();iItem++){
+        std::cout<<"iItem: "<<indicesInImageVec[indicesInImageVec.size()-1-iItem]<<std::endl;
+        ImageVec.erase(ImageVec.begin()+indicesInImageVec[indicesInImageVec.size()-1-iItem]);
     }
-
-    std::cout<<"After - ModelTypes.size(): "<<ModelTypes.size()<<std::endl;
-//    std::cout<<"Right"<<tooFarRight<<"\tLeft"<<tooFarLeft<<"\tUp"<<tooFarUp<<"\tDown"<<tooFarDown<<std::endl;
 }
 
 //! [7]
@@ -538,7 +657,6 @@ void MainWindow::itemsInserted(DiagramItem *item, std::size_t nModels,const std:
         ModelPositions.push_back(std::vector<double>(2,0));
         ModelPositions[ModelPositions.size()-1][0] = modelPositions[iModel][0];
         ModelPositions[ModelPositions.size()-1][1] = modelPositions[iModel][1];
-        std::cout<<"Pos: "<<ModelPositions[ModelPositions.size()-1][0]<<" - "<<ModelPositions[ModelPositions.size()-1][1]<<std::endl;
 
         switch (item->diagramType()) {
         // Archer
@@ -583,13 +701,12 @@ void MainWindow::itemsInserted(DiagramItem *item, std::size_t nModels,const std:
 //! [7]
 
 void MainWindow::itemsInserted(diagramImage *item,DiagramItem::DiagramType type){
-    scene->setMode(DiagramScene::Mode(3));
+    scene->setMode(DiagramScene::MoveItem);
     buttonGroup->button(int(type))->setChecked(false);
 
 //        ModelPositions.push_back(std::vector<double>(2,0));
 //        ModelPositions[ModelPositions.size()-1][0] = modelPositions[iModel][0];
 //        ModelPositions[ModelPositions.size()-1][1] = modelPositions[iModel][1];
-        std::cout<<"Pos: "<<ModelPositions[ModelPositions.size()-1][0]<<" - "<<ModelPositions[ModelPositions.size()-1][1]<<std::endl;
 
         switch (type) {
         // Archer
@@ -633,7 +750,6 @@ void MainWindow::itemsInserted(diagramImage *item,DiagramItem::DiagramType type)
 
         // Update lists
         ImageVec.push_back(item);
-        std::cout<<"New Type = "<<(ImageVec[ImageVec.size()-1])->getModelType()<<std::endl;
 }
 
 //! [8]

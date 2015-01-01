@@ -103,6 +103,10 @@ private slots:
     void setBounds();
     void editModelProperties();
     void setMovementType(int newValue);
+    void setMovementDetails(double newValue);
+    void setGravity(int newValue);
+    void setRelationToMainChara(int newValue);
+    void setEventIndex(int newValue);
 
 private:
     void createToolBox();
@@ -181,7 +185,7 @@ private:
     //		- case 1st col is 0: entry is ignored
     //		- case 1st col is 1: entry represents the distance of the movement
     //		- case 1st col is 2: entry is ignored
-    std::vector<std::size_t> MovementDetails;
+    std::vector<double> MovementDetails;
     // save if gravation effect the model or not
     std::vector<std::size_t> Gravity;
     // neutral or enemy or friend
